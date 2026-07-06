@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { navigationGroups, type NavigationItem } from "@/config/navigation";
 import type { AuthUser } from "@/features/auth/types/auth.types";
-import { canAccessItem } from "./permissions";
+import { canAccessItem, canAdminResetPassword } from "./permissions";
 
 const user: AuthUser = {
   id: "user-1",
@@ -60,5 +60,19 @@ describe("navigation permissions", () => {
     );
     assert.equal(controlItems?.some((item) => item.title === "Límites"), false);
     assert.equal(controlItems?.some((item) => item.title === "Bloqueados"), false);
+  });
+
+  it("shows administrative password reset only for the complete API RBAC contract", () => {
+    const admin = {
+      ...user,
+      role: { id: "admin-role", name: "ADMIN" },
+      modules: ["USUARIOS"],
+      permissions: ["usuarios.update"],
+    };
+
+    assert.equal(canAdminResetPassword(admin), true);
+    assert.equal(canAdminResetPassword({ ...admin, modules: [] }), false);
+    assert.equal(canAdminResetPassword({ ...admin, permissions: [] }), false);
+    assert.equal(canAdminResetPassword({ ...admin, role: user.role }), false);
   });
 });

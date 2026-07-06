@@ -14,8 +14,11 @@ import { SellerInvitationsKanban } from "./seller-invitations-kanban";
 import { SellerInvitationsTable } from "./seller-invitations-table";
 import { SellerOverviewCards } from "./seller-overview-cards";
 import { SellerViewSwitcher } from "./seller-view-switcher";
+import { AdminPasswordResetTool } from "./admin-password-reset-tool";
+import { SellerDirectory } from "./seller-directory";
 import { useSellerInvitations } from "../hooks/use-sellers";
 import { parseSellerInvitationsQuery } from "../utils/seller-query";
+import { canAdminResetPassword } from "@/lib/auth/permissions";
 
 export function SellersWorkspace() {
   const searchParams = useSearchParams();
@@ -24,12 +27,12 @@ export function SellersWorkspace() {
     () => parseSellerInvitationsQuery(new URLSearchParams(searchString)),
     [searchString],
   );
-  const requestedView = searchParams.get("view");
-  const view = requestedView === "flow" || requestedView === "kanban"
-    ? "flow"
-    : "directory";
-  const { data, error, isFetching, refetch } = useSellerInvitations(query);
   const { data: currentUser } = useCurrentUser();
+  const requestedView = searchParams.get("view");
+  const canViewDirectory = currentUser?.permissions.includes("vendedores.read") ?? false;
+  const canViewFlow = currentUser?.permissions.includes("usuarios.read") ?? false;
+  const view = (requestedView === "flow" || requestedView === "kanban") && canViewFlow ? "flow" : canViewDirectory ? "directory" : "flow";
+  const { data, error, isFetching, refetch } = useSellerInvitations(query, view === "flow");
   const invitations = data?.invitations ?? [];
   const pagination = data?.pagination ?? {
     page: query.page ?? 1,
@@ -48,6 +51,15 @@ export function SellersWorkspace() {
     view,
   };
   const canCreate = currentUser?.permissions.includes("usuarios.create") ?? false;
+  const canResetPassword = currentUser ? canAdminResetPassword(currentUser) : false;
+  const directoryQuery = {
+    search: searchParams.get("search") || undefined,
+    active: searchParams.get("active") === "true" ? true : searchParams.get("active") === "false" ? false : undefined,
+    page: Math.max(1, Number(searchParams.get("page")) || 1),
+    limit: Math.min(100, Math.max(1, Number(searchParams.get("limit")) || 10)),
+    sortBy: "name",
+    sortDirection: "asc" as const,
+  };
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -63,16 +75,15 @@ export function SellersWorkspace() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <SellerViewSwitcher view={view} baseParams={baseParams} />
+          <SellerViewSwitcher view={view} baseParams={baseParams} allowedViews={[...(canViewDirectory ? ["directory" as const] : []), ...(canViewFlow ? ["flow" as const] : [])]} />
+          {canResetPassword ? <AdminPasswordResetTool /> : null}
           {canCreate ? <CreateSellerInvitationButton label="Nuevo acceso" /> : null}
         </div>
       </header>
 
-      <section aria-label="Resumen de identidades y accesos" className="mt-6">
-        <SellerOverviewCards />
-      </section>
+      {view === "flow" ? <section aria-label="Resumen de identidades y accesos" className="mt-6"><SellerOverviewCards /></section> : null}
 
-      <aside className="mt-6 flex flex-col gap-3 rounded-2xl border border-primary/12 bg-primary/4 p-4 sm:flex-row sm:items-center sm:justify-between">
+      {view === "flow" ? <aside className="mt-6 flex flex-col gap-3 rounded-2xl border border-primary/12 bg-primary/4 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground">
             <Sparkles className="h-4 w-4" />
@@ -87,7 +98,7 @@ export function SellersWorkspace() {
         <span className="shrink-0 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] text-muted-foreground">
           Fuente: Identity Access API
         </span>
-      </aside>
+      </aside> : null}
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-4" aria-label="Invitaciones de vendedores">
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -101,7 +112,7 @@ export function SellersWorkspace() {
                 : "Ordena columnas, abre el detalle o actúa sobre accesos pendientes."}
             </p>
           </div>
-          <button
+          {view === "flow" ? <button
             type="button"
             onClick={() => refetch()}
             disabled={isFetching}
@@ -109,21 +120,21 @@ export function SellersWorkspace() {
           >
             <RefreshCcw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
             Actualizar
-          </button>
+          </button> : null}
         </div>
 
-        <SellerInvitationsFilters
+        {view === "flow" ? <SellerInvitationsFilters
           key={`${query.sellerName ?? ""}|${query.username ?? ""}|${query.email ?? ""}|${query.status ?? ""}`}
           query={query}
-        />
+        /> : null}
 
-        {error ? (
+        {view === "flow" && error ? (
           <div role="alert" className="mt-4 rounded-xl border border-danger/20 bg-danger/10 p-4 text-sm text-danger">
             {error.message}
           </div>
         ) : null}
 
-        <div className={`mt-4 transition-opacity ${isFetching ? "opacity-65" : "opacity-100"}`}>
+        {view === "directory" ? <SellerDirectory query={directoryQuery} /> : <><div className={`mt-4 transition-opacity ${isFetching ? "opacity-65" : "opacity-100"}`}>
           {view === "flow" ? (
             <SellerInvitationsKanban invitations={invitations} />
           ) : (
@@ -136,7 +147,7 @@ export function SellersWorkspace() {
           params={baseParams}
           pagination={pagination}
           itemLabel="accesos"
-        />
+        /></>}
       </section>
 
       {canCreate ? <CreateSellerInvitationDrawer /> : null}

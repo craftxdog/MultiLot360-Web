@@ -8,6 +8,7 @@ import { SellerInvitationActions } from "./seller-invitation-actions";
 import { SellerStatusBadge } from "./seller-status-badge";
 import { AdminResetPasswordPanel } from "./admin-reset-password-panel";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { canAdminResetPassword } from "@/lib/auth/permissions";
 
 export function SellerDetailsDrawer() {
   const invitation = useSellerWorkspaceStore((state) => state.selectedInvitation);
@@ -70,7 +71,7 @@ export function SellerDetailsDrawer() {
               <p className="mt-1 text-xs text-muted-foreground">{formatSellerDate(invitation.createdAt)}</p>
             </div>
 
-            {currentUser.data?.role.name.toUpperCase() === "ADMIN" && currentUser.data.permissions.includes("usuarios.update") ? <AdminResetPasswordPanel invitation={invitation} /> : null}
+            {currentUser.data && canAdminResetPassword(currentUser.data) ? <AdminResetPasswordPanel invitation={invitation} /> : null}
 
             <div className="mt-5 border-t border-border pt-4">
               <SellerInvitationActions invitation={invitation} showDetails={false} />

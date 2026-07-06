@@ -20,6 +20,7 @@ const queryRootsByEvent: Array<[prefix: string, roots: string[]]> = [
   ["prize-payments.", ["prize-payments", "results", "reports", "cash-cuts"]],
   ["cash-cuts.", ["cash-cuts", "reports"]],
   ["parameters.", ["parameters", "sales"]],
+  ["notifications.", ["notifications"]],
 ];
 
 async function getRealtimeToken() {

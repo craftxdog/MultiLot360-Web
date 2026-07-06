@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { activeDrawShiftsQueryOptions } from "@/features/draws/queries/draw.queries";
 import { useDrawClock } from "@/features/draws/hooks/use-draw-clock";
-import { sellerInvitationsQueryOptions } from "@/features/sellers/queries/seller.queries";
+import { sellerDirectoryQueryOptions } from "@/features/sellers/queries/seller.queries";
 import { useSalesMutations } from "../hooks/use-sales-mutations";
 import { createSaleSchema } from "../schemas/sales.schema";
 import { useSalesWorkspaceStore } from "../store/sales-workspace.store";
@@ -32,13 +32,13 @@ export function SaleStation() {
   const permissions = user.data?.permissions ?? [];
   const isAdmin = user.data?.role.name.toUpperCase() === "ADMIN";
   const canReadShifts = permissions.includes("turnos.read");
-  const canReadSellers = permissions.includes("usuarios.read");
+  const canReadSellers = permissions.includes("vendedores.read");
   const shifts = useQuery({
     ...activeDrawShiftsQueryOptions({ page: 1, limit: 50, date: getSalesToday(), sortBy: "configurationTime", sortDirection: "asc" }),
     enabled: canReadShifts,
   });
   const sellers = useQuery({
-    ...sellerInvitationsQueryOptions({ page: 1, limit: 100, status: "USADO" }),
+    ...sellerDirectoryQueryOptions({ page: 1, limit: 100, active: true, sortBy: "name", sortDirection: "asc" }),
     enabled: isAdmin && canReadSellers,
   });
   const items = useSalesWorkspaceStore((state) => state.items);
@@ -53,8 +53,8 @@ export function SaleStation() {
   const currentShift = now === undefined ? null : selectCurrentSalesShift(shiftOptions, now);
   const adminShift = selectedShiftId ? saleableShifts.find((shift) => shift.id === selectedShiftId) ?? null : null;
   const effectiveShift = isAdmin ? adminShift ?? currentShift : currentShift;
-  const sellerOptions = sellers.data?.invitations ?? [];
-  const effectiveSellerId = isAdmin && selectedSellerId && (canReadSellers ? sellerOptions.some((seller) => seller.sellerId === selectedSellerId) : createSaleSchema.shape.sellerId.safeParse(selectedSellerId).success) ? selectedSellerId : null;
+  const sellerOptions = sellers.data?.sellers ?? [];
+  const effectiveSellerId = isAdmin && selectedSellerId && (canReadSellers ? sellerOptions.some((seller) => seller.id === selectedSellerId) : createSaleSchema.shape.sellerId.safeParse(selectedSellerId).success) ? selectedSellerId : null;
   const canSellAsSelf = Boolean(user.data?.seller?.id);
   const accountReady = isAdmin ? canSellAsSelf || Boolean(effectiveSellerId) : canSellAsSelf;
   const amountsReady = items.length > 0 && items.every((item) => createSaleSchema.shape.items.element.safeParse(item).success);
@@ -84,7 +84,7 @@ export function SaleStation() {
 
       {isAdmin ? <div>
         <p className="text-xs font-medium text-muted-foreground">Registrar venta para</p>
-        {canReadSellers ? <SalesSelect className="mt-2" ariaLabel="Vendedor" value={effectiveSellerId ?? ""} onChange={(value) => selectSeller(value || null)} options={[{ value: "", label: canSellAsSelf ? `Mi cuenta · ${user.data?.seller?.name ?? user.data?.username}` : "Selecciona un vendedor" }, ...sellerOptions.map((seller) => ({ value: seller.sellerId, label: seller.sellerName }))]} /> : <Input className="mt-2" aria-label="Identificador del vendedor" placeholder="UUID del vendedor" value={selectedSellerId ?? ""} onChange={(event) => selectSeller(event.target.value || null)} />}
+        {canReadSellers ? <SalesSelect className="mt-2" ariaLabel="Vendedor" value={effectiveSellerId ?? ""} onChange={(value) => selectSeller(value || null)} options={[{ value: "", label: canSellAsSelf ? `Mi cuenta · ${user.data?.seller?.name ?? user.data?.username}` : "Selecciona un vendedor" }, ...sellerOptions.map((seller) => ({ value: seller.id, label: seller.name }))]} /> : <Input className="mt-2" aria-label="Identificador del vendedor" placeholder="UUID del vendedor" value={selectedSellerId ?? ""} onChange={(event) => selectSeller(event.target.value || null)} />}
         {!accountReady ? <p className="mt-2 text-xs text-danger">Selecciona un vendedor. Esta cuenta administrativa no tiene perfil de vendedor propio.</p> : <p className="mt-2 text-[10px] text-muted-foreground">Puedes usar tu perfil de vendedor o representar a otro vendedor habilitado.</p>}
       </div> : <div>
         <p className="text-xs font-medium text-muted-foreground">Cuenta de venta</p>

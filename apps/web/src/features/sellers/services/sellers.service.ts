@@ -8,12 +8,21 @@ import type {
   SellerInvitationsQuery,
   SellerInvitationsResult,
   SellerOverview,
+  SellerDirectoryQuery,
+  SellerDirectoryResult,
 } from "../types/seller.types";
 import type { AdminResetPasswordPayload, AdminResetPasswordResponse } from "@/features/auth/types/auth.types";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
 export const sellersService = {
+  getDirectory(query: SellerDirectoryQuery = {}) {
+    const params = new URLSearchParams();
+    Object.entries(query).forEach(([key, value]) => { if (value !== undefined && value !== "") params.set(key, String(value)); });
+    const suffix = params.size ? `?${params}` : "";
+    return browserHttp<SellerDirectoryResult>(`/api/sellers/directory${suffix}`);
+  },
+
   getInvitations(query: SellerInvitationsQuery = {}) {
     return browserHttp<SellerInvitationsResult>(
       `/api/sellers/invitations${buildSellerQueryString(query)}`,

@@ -103,13 +103,19 @@ export const navigationGroups: NavigationGroup[] = [
         title: "Vendedores",
         href: routes.sellers,
         icon: "users",
-        permission: "usuarios.read",
+        anyPermissions: ["vendedores.read", "usuarios.read"],
       },
       {
         title: "Parámetros",
         href: routes.parameters,
         icon: "settings",
         permission: "parametros.read",
+      },
+      {
+        title: "Roles y permisos",
+        href: routes.roles,
+        icon: "shield-check",
+        permission: "roles.read",
       },
       {
         title: "Auditoría",

@@ -11,6 +11,9 @@ import type {
   SellerInvitationsQuery,
   SellerInvitationsResult,
   SellerOverview,
+  SellerDirectoryItem,
+  SellerDirectoryQuery,
+  SellerDirectoryResult,
 } from "../types/seller.types";
 import type { AdminResetPasswordPayload, AdminResetPasswordResponse } from "@/features/auth/types/auth.types";
 
@@ -30,6 +33,18 @@ function fallbackPagination(
 }
 
 export const sellersApi = {
+  async getDirectory(query: SellerDirectoryQuery, accessToken: string): Promise<SellerDirectoryResult> {
+    const params = new URLSearchParams();
+    params.set("page", String(query.page ?? 1));
+    params.set("limit", String(query.limit ?? 10));
+    params.set("sortBy", query.sortBy ?? "name");
+    params.set("sortDirection", query.sortDirection ?? "asc");
+    if (query.search) params.set("search", query.search);
+    if (query.active !== undefined) params.set("active", String(query.active));
+    const envelope = await httpEnvelope<SellerDirectoryItem[]>(`/identity-access/sellers?${params}`, { method: "GET", token: accessToken });
+    return { sellers: envelope.data, pagination: envelope.meta?.pagination ?? fallbackPagination(query, envelope.data.length) };
+  },
+
   async getInvitations(
     query: SellerInvitationsQuery,
     accessToken: string,

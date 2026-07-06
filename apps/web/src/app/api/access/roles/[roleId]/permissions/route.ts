@@ -1,0 +1,5 @@
+import { z } from "zod";
+import { accessControlApi } from "@/features/access-control/server/access-control-api";
+import { assertOperationsOrigin, getOperationsToken, operationsError, operationsResponse } from "@/features/operations/server/operations-route";
+const permission = z.object({ moduleCode: z.string().trim().toUpperCase().regex(/^[A-Z][A-Z0-9_]*$/), canRead: z.boolean(), canCreate: z.boolean(), canUpdate: z.boolean(), canDelete: z.boolean() });
+export async function PUT(request: Request, context: { params: Promise<{ roleId: string }> }) { try { assertOperationsOrigin(request); const token = await getOperationsToken(); if (!token) return operationsResponse({ message: "Tu sesión expiró." }, 401); const { roleId } = await context.params; const { permissions } = z.object({ permissions: z.array(permission) }).parse(await request.json()); return operationsResponse(await accessControlApi.replacePermissions(z.uuid().parse(roleId), permissions, token)); } catch (error) { return operationsError(error); } }

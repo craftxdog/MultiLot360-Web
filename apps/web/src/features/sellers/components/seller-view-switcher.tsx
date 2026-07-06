@@ -9,11 +9,13 @@ export type SellerView = "directory" | "flow";
 type SellerViewSwitcherProps = {
   view: SellerView;
   baseParams: Record<string, string | undefined>;
+  allowedViews?: SellerView[];
 };
 
 export function SellerViewSwitcher({
   view,
   baseParams,
+  allowedViews = ["directory", "flow"],
 }: SellerViewSwitcherProps) {
   const pathname = usePathname();
   const items = [
@@ -33,7 +35,7 @@ export function SellerViewSwitcher({
 
   return (
     <div className="inline-flex rounded-lg border border-border bg-accent p-1">
-      {items.map((item) => {
+      {items.filter((item) => allowedViews.includes(item.value)).map((item) => {
         const Icon = item.icon;
         const active = view === item.value;
 

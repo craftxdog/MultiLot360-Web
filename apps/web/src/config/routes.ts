@@ -20,6 +20,7 @@ export const routes = {
   sellers: "/vendedores",
   users: "/usuarios",
   parameters: "/parametros",
+  roles: "/roles",
   audit: "/auditoria",
   settings: "/ajustes",
 } as const;

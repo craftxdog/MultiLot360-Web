@@ -33,3 +33,11 @@ export function filterItemsByPermissions(
 ) {
   return items.filter((item) => canAccessItem(user, item));
 }
+
+export function canAdminResetPassword(user: AuthUser) {
+  return (
+    user.role.name.toUpperCase() === "ADMIN" &&
+    user.modules.some((moduleName) => moduleName.toUpperCase() === "USUARIOS") &&
+    user.permissions.includes("usuarios.update")
+  );
+}

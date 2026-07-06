@@ -34,7 +34,7 @@ export default async function AppLayout({
           <AppSidebar groups={visibleGroups} />
 
           <section className="flex min-w-0 flex-1 flex-col">
-            <AppTopbar />
+            <AppTopbar groups={visibleGroups} />
 
             <div className="min-w-0 flex-1 px-4 py-5 lg:px-6 lg:py-6">
               {children}

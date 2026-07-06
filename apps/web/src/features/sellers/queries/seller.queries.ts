@@ -1,6 +1,6 @@
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { sellersService } from "../services/sellers.service";
-import type { SellerInvitationsQuery } from "../types/seller.types";
+import type { SellerDirectoryQuery, SellerInvitationsQuery } from "../types/seller.types";
 
 export const sellerKeys = {
   all: ["sellers"] as const,
@@ -8,6 +8,7 @@ export const sellerKeys = {
   invitationList: (query: SellerInvitationsQuery) =>
     [...sellerKeys.invitations(), query] as const,
   overview: () => [...sellerKeys.all, "overview"] as const,
+  directory: (query: SellerDirectoryQuery) => [...sellerKeys.all, "directory", query] as const,
 };
 
 export function sellerInvitationsQueryOptions(query: SellerInvitationsQuery) {
@@ -16,6 +17,10 @@ export function sellerInvitationsQueryOptions(query: SellerInvitationsQuery) {
     queryFn: () => sellersService.getInvitations(query),
     placeholderData: keepPreviousData,
   });
+}
+
+export function sellerDirectoryQueryOptions(query: SellerDirectoryQuery) {
+  return queryOptions({ queryKey: sellerKeys.directory(query), queryFn: () => sellersService.getDirectory(query), placeholderData: keepPreviousData });
 }
 
 export function sellerOverviewQueryOptions() {

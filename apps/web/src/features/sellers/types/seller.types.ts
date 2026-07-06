@@ -64,6 +64,26 @@ export type SellerInvitationsResult = {
   pagination: SellerPagination;
 };
 
+export type SellerDirectoryItem = {
+  id: string;
+  userId: string;
+  username: string;
+  userName: string | null;
+  roleId: string;
+  roleName: string;
+  name: string;
+  documentId: string;
+  phone: string | null;
+  address: string | null;
+  active: boolean;
+  userActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SellerDirectoryQuery = { search?: string; active?: boolean; page?: number; limit?: number; sortBy?: string; sortDirection?: "asc" | "desc" };
+export type SellerDirectoryResult = { sellers: SellerDirectoryItem[]; pagination: SellerPagination };
+
 export type CreateSellerInvitationPayload = {
   email: string;
   username: string;

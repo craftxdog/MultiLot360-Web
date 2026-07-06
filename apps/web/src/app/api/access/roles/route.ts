@@ -1,0 +1,5 @@
+import { z } from "zod";
+import { accessControlApi } from "@/features/access-control/server/access-control-api";
+import { assertOperationsOrigin, getOperationsToken, operationsError, operationsResponse } from "@/features/operations/server/operations-route";
+export async function GET() { try { const token = await getOperationsToken(); if (!token) return operationsResponse({ message: "Tu sesión expiró." }, 401); return operationsResponse(await accessControlApi.roles(token)); } catch (error) { return operationsError(error); } }
+export async function POST(request: Request) { try { assertOperationsOrigin(request); const token = await getOperationsToken(); if (!token) return operationsResponse({ message: "Tu sesión expiró." }, 401); const input = z.object({ name: z.string().trim().min(2).max(80).regex(/^[\p{L}\p{N} _.-]+$/u) }).parse(await request.json()); return operationsResponse(await accessControlApi.createRole(input.name, token), 201); } catch (error) { return operationsError(error); } }
