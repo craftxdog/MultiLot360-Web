@@ -77,11 +77,13 @@ export type SellerDirectoryItem = {
   address: string | null;
   active: boolean;
   userActive: boolean;
+  deletedAt?: string | null;
+  deletionReason?: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
-export type SellerDirectoryQuery = { search?: string; active?: boolean; page?: number; limit?: number; sortBy?: string; sortDirection?: "asc" | "desc" };
+export type SellerDirectoryQuery = { search?: string; username?: string; documentId?: string; roleId?: string; active?: boolean; createdFrom?: string; createdTo?: string; page?: number; limit?: number; sortBy?: string; sortDirection?: "asc" | "desc" };
 export type SellerDirectoryResult = { sellers: SellerDirectoryItem[]; pagination: SellerPagination };
 
 export type CreateSellerInvitationPayload = {
@@ -119,9 +121,14 @@ export type RevokeSellerInvitationResponse = {
 };
 
 export type SellerMutationResponse = {
-  id?: string;
+  sellerId?: string;
   userId?: string;
-  active?: boolean;
-  userActive?: boolean;
-  deleted?: boolean;
+  username?: string;
+  sellerName?: string;
+  authUserId?: string | null;
+  mode?: "soft" | "hard";
+  authUserDeleted?: boolean;
+  deletedAt?: string;
 };
+
+export type DeleteSellerPayload = { sellerId: string; reason?: string };

@@ -14,6 +14,7 @@ import type {
   SellerDirectoryItem,
   SellerDirectoryQuery,
   SellerDirectoryResult,
+  DeleteSellerPayload,
   SellerMutationResponse,
 } from "../types/seller.types";
 import type { AdminResetPasswordPayload, AdminResetPasswordResponse } from "@/features/auth/types/auth.types";
@@ -41,6 +42,11 @@ export const sellersApi = {
     params.set("sortBy", query.sortBy ?? "name");
     params.set("sortDirection", query.sortDirection ?? "asc");
     if (query.search) params.set("search", query.search);
+    if (query.username) params.set("username", query.username);
+    if (query.documentId) params.set("documentId", query.documentId);
+    if (query.roleId) params.set("roleId", query.roleId);
+    if (query.createdFrom) params.set("createdFrom", query.createdFrom);
+    if (query.createdTo) params.set("createdTo", query.createdTo);
     if (query.active !== undefined) params.set("active", String(query.active));
     const envelope = await httpEnvelope<SellerDirectoryItem[]>(`/identity-access/sellers?${params}`, { method: "GET", token: accessToken });
     return { sellers: envelope.data, pagination: envelope.meta?.pagination ?? fallbackPagination(query, envelope.data.length) };
@@ -121,17 +127,17 @@ export const sellersApi = {
     );
   },
 
-  deactivateSeller(sellerId: string, accessToken: string) {
+  deactivateSeller(input: DeleteSellerPayload, accessToken: string) {
     return http<SellerMutationResponse>(
-      `/identity-access/sellers/${sellerId}/deactivate`,
-      { method: "PATCH", token: accessToken },
+      `/identity-access/sellers/${input.sellerId}/soft-delete`,
+      { method: "PATCH", token: accessToken, body: JSON.stringify({ reason: input.reason }) },
     );
   },
 
-  deleteSeller(sellerId: string, accessToken: string) {
+  deleteSeller(input: DeleteSellerPayload, accessToken: string) {
     return http<SellerMutationResponse>(
-      `/identity-access/sellers/${sellerId}`,
-      { method: "DELETE", token: accessToken },
+      `/identity-access/sellers/${input.sellerId}`,
+      { method: "DELETE", token: accessToken, body: JSON.stringify({ reason: input.reason }) },
     );
   },
 

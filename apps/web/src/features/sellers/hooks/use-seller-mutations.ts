@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { sellerKeys } from "../queries/seller.queries";
 import { sellersService } from "../services/sellers.service";
-import type { CreateSellerInvitationPayload } from "../types/seller.types";
+import type { CreateSellerInvitationPayload, DeleteSellerPayload } from "../types/seller.types";
 
 export function useSellerMutations() {
   const queryClient = useQueryClient();
@@ -45,7 +45,7 @@ export function useSellerMutations() {
   });
 
   const deactivateSeller = useMutation({
-    mutationFn: (sellerId: string) => sellersService.deactivateSeller(sellerId),
+    mutationFn: (input: DeleteSellerPayload) => sellersService.deactivateSeller(input),
     onSuccess: async () => {
       await invalidateSellerData();
       toast.success("Vendedor desactivado");
@@ -54,7 +54,7 @@ export function useSellerMutations() {
   });
 
   const deleteSeller = useMutation({
-    mutationFn: (sellerId: string) => sellersService.deleteSeller(sellerId),
+    mutationFn: (input: DeleteSellerPayload) => sellersService.deleteSeller(input),
     onSuccess: async () => {
       await invalidateSellerData();
       toast.success("Vendedor eliminado definitivamente");

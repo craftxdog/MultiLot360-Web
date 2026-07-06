@@ -14,7 +14,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ s
     const token = await getSellerRouteAccessToken();
     if (!token) return unauthorizedSellerRouteResponse();
     const sellerId = sellerIdSchema.parse((await params).sellerId);
-    return sellerRouteResponse(await sellersApi.deleteSeller(sellerId, token));
+    const body = await request.json().catch(() => ({}));
+    return sellerRouteResponse(await sellersApi.deleteSeller({ sellerId, reason: typeof body.reason === "string" ? body.reason : undefined }, token));
   } catch (error) {
     return sellerRouteErrorResponse(error);
   }

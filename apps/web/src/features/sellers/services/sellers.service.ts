@@ -10,6 +10,7 @@ import type {
   SellerOverview,
   SellerDirectoryQuery,
   SellerDirectoryResult,
+  DeleteSellerPayload,
   SellerMutationResponse,
 } from "../types/seller.types";
 import type { AdminResetPasswordPayload, AdminResetPasswordResponse } from "@/features/auth/types/auth.types";
@@ -60,15 +61,19 @@ export const sellersService = {
     );
   },
 
-  deactivateSeller(sellerId: string) {
-    return browserHttp<SellerMutationResponse>(`/api/sellers/${sellerId}/deactivate`, {
+  deactivateSeller(input: DeleteSellerPayload) {
+    return browserHttp<SellerMutationResponse>(`/api/sellers/${input.sellerId}/deactivate`, {
       method: "PATCH",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ reason: input.reason }),
     });
   },
 
-  deleteSeller(sellerId: string) {
-    return browserHttp<SellerMutationResponse>(`/api/sellers/${sellerId}`, {
+  deleteSeller(input: DeleteSellerPayload) {
+    return browserHttp<SellerMutationResponse>(`/api/sellers/${input.sellerId}`, {
       method: "DELETE",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({ reason: input.reason }),
     });
   },
 
