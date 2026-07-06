@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataPagination } from "@/components/ui/data-pagination";
 import { Input } from "@/components/ui/input";
+import { UserEntityCombobox } from "@/features/shared/components/api-entity-comboboxes";
 import { useUrlQuery } from "../hooks/use-url-query";
 import { auditEventOptions, auditOptions } from "../queries/operations.queries";
 import { auditQuerySchema } from "../utils/operations-query";
@@ -30,7 +31,7 @@ export function AuditWorkspace() {
       });
     }}>
       <Input name="event" placeholder="Tipo de evento" defaultValue={query.event} />
-      <Input name="userId" placeholder="ID de actor" defaultValue={query.userId} />
+      <UserEntityCombobox name="userId" value={query.userId} placeholder="Actor" />
       <Input name="createdFrom" type="date" defaultValue={query.createdFrom} />
       <Input name="createdUntil" type="date" defaultValue={query.createdUntil} />
       <select name="sortBy" defaultValue={query.sortBy} className="h-11 rounded-xl border border-border bg-background px-3 text-sm"><option value="createdAt">Fecha</option><option value="event">Evento</option><option value="id">ID</option></select>

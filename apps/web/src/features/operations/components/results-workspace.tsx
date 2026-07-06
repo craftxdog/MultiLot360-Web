@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DataPagination } from "@/components/ui/data-pagination";
 import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { ShiftEntityCombobox, UserEntityCombobox } from "@/features/shared/components/api-entity-comboboxes";
 import { useUrlQuery } from "../hooks/use-url-query";
 import {
   operationKeys,
@@ -63,8 +64,8 @@ export function ResultsWorkspace() {
       <Input name="date" type="date" defaultValue={query.date} aria-label="Fecha" />
       <Input name="drawCode" defaultValue={query.drawCode} placeholder="Sorteo" />
       <Input name="winningNumber" defaultValue={query.winningNumber} placeholder="Número ganador" inputMode="numeric" maxLength={2} />
-      <Input name="shiftId" defaultValue={query.shiftId} placeholder="ID turno" />
-      <Input name="createdByUserId" defaultValue={query.createdByUserId} placeholder="ID creador" />
+      <ShiftEntityCombobox name="shiftId" value={query.shiftId} placeholder="Turno" />
+      <UserEntityCombobox name="createdByUserId" value={query.createdByUserId} placeholder="Creador" />
       <select name="sortBy" defaultValue={query.sortBy} className="h-11 rounded-xl border border-border bg-background px-3 text-sm">
         <option value="createdAt">Más recientes</option>
         <option value="date">Fecha</option>
@@ -85,13 +86,18 @@ export function ResultsWorkspace() {
         onSubmit={(event) => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
+          const shiftId = String(form.get("shiftId") || "");
+          if (!shiftId) {
+            toast.error("Selecciona un turno cerrado.");
+            return;
+          }
           create.mutate({
-            shiftId: String(form.get("shiftId")),
+            shiftId,
             winningNumber: String(form.get("winningNumber")).replace(/\D/g, "").padStart(2, "0"),
           });
         }}
       >
-        <Input name="shiftId" placeholder="ID del turno cerrado" required />
+        <ShiftEntityCombobox name="shiftId" placeholder="Turno cerrado" status="CERRADO" />
         <Input name="winningNumber" placeholder="Número 00–99" inputMode="numeric" maxLength={2} required />
         <Button type="submit" className="w-full" disabled={create.isPending}>Confirmar resultado</Button>
       </form>

@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, LockKeyhole, ShieldCheck, TicketCheck, UserRoundCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { activeDrawShiftsQueryOptions } from "@/features/draws/queries/draw.queries";
 import { useDrawClock } from "@/features/draws/hooks/use-draw-clock";
@@ -54,7 +53,7 @@ export function SaleStation() {
   const adminShift = selectedShiftId ? saleableShifts.find((shift) => shift.id === selectedShiftId) ?? null : null;
   const effectiveShift = isAdmin ? adminShift ?? currentShift : currentShift;
   const sellerOptions = sellers.data?.sellers ?? [];
-  const effectiveSellerId = isAdmin && selectedSellerId && (canReadSellers ? sellerOptions.some((seller) => seller.id === selectedSellerId) : createSaleSchema.shape.sellerId.safeParse(selectedSellerId).success) ? selectedSellerId : null;
+  const effectiveSellerId = isAdmin && selectedSellerId && canReadSellers && sellerOptions.some((seller) => seller.id === selectedSellerId) ? selectedSellerId : null;
   const canSellAsSelf = Boolean(user.data?.seller?.id);
   const accountReady = isAdmin ? canSellAsSelf || Boolean(effectiveSellerId) : canSellAsSelf;
   const amountsReady = items.length > 0 && items.every((item) => createSaleSchema.shape.items.element.safeParse(item).success);
@@ -77,14 +76,14 @@ export function SaleStation() {
     <section className="grid gap-3 rounded-2xl border border-border bg-card p-4 lg:grid-cols-2">
       <div>
         <p className="text-xs font-medium text-muted-foreground">Turno de venta</p>
-        {isAdmin ? canReadShifts ? <SalesSelect className="mt-2" ariaLabel="Turno de venta" value={effectiveShift?.id ?? ""} onChange={(value) => selectShift(value || null)} options={[{ value: "", label: shifts.isLoading || now === undefined ? "Buscando turno actual…" : "No hay turno disponible" }, ...saleableShifts.map((shift) => ({ value: shift.id, label: formatSalesShiftLabel(shift) }))]} /> : <Input className="mt-2" aria-label="Identificador del turno" placeholder="UUID del turno abierto" value={selectedShiftId ?? ""} onChange={(event) => selectShift(event.target.value || null)} /> : <div className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-border bg-muted/30 px-4"><LockKeyhole className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /><div><p className="text-sm font-medium text-foreground">{effectiveShift ? formatSalesShiftLabel(effectiveShift) : shifts.isLoading || now === undefined ? "Buscando turno actual…" : "Sin turno de venta"}</p><p className="text-[10px] text-muted-foreground">Se actualiza automáticamente según la hora de Managua.</p></div></div>}
+        {isAdmin ? canReadShifts ? <SalesSelect className="mt-2" ariaLabel="Turno de venta" value={effectiveShift?.id ?? ""} onChange={(value) => selectShift(value || null)} options={[{ value: "", label: shifts.isLoading || now === undefined ? "Buscando turno actual…" : "No hay turno disponible" }, ...saleableShifts.map((shift) => ({ value: shift.id, label: formatSalesShiftLabel(shift) }))]} /> : <p className="mt-2 rounded-xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground">Necesitas permiso para listar turnos antes de vender como administrador.</p> : <div className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-border bg-muted/30 px-4"><LockKeyhole className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /><div><p className="text-sm font-medium text-foreground">{effectiveShift ? formatSalesShiftLabel(effectiveShift) : shifts.isLoading || now === undefined ? "Buscando turno actual…" : "Sin turno de venta"}</p><p className="text-[10px] text-muted-foreground">Se actualiza automáticamente según la hora de Managua.</p></div></div>}
         {!canReadShifts ? <p className="mt-2 text-xs text-danger">El rol necesita permiso `turnos.read` para vender con asignación segura.</p> : null}
         {unavailable ? <p className="mt-2 text-xs text-danger">No hay un turno abierto de 11 a. m., 3 p. m. o 9 p. m. dentro de su horario de venta.</p> : null}
       </div>
 
       {isAdmin ? <div>
         <p className="text-xs font-medium text-muted-foreground">Registrar venta para</p>
-        {canReadSellers ? <SalesSelect className="mt-2" ariaLabel="Vendedor" value={effectiveSellerId ?? ""} onChange={(value) => selectSeller(value || null)} options={[{ value: "", label: canSellAsSelf ? `Mi cuenta · ${user.data?.seller?.name ?? user.data?.username}` : "Selecciona un vendedor" }, ...sellerOptions.map((seller) => ({ value: seller.id, label: seller.name }))]} /> : <Input className="mt-2" aria-label="Identificador del vendedor" placeholder="UUID del vendedor" value={selectedSellerId ?? ""} onChange={(event) => selectSeller(event.target.value || null)} />}
+        {canReadSellers ? <SalesSelect className="mt-2" ariaLabel="Vendedor" value={effectiveSellerId ?? ""} onChange={(value) => selectSeller(value || null)} options={[{ value: "", label: canSellAsSelf ? `Mi cuenta · ${user.data?.seller?.name ?? user.data?.username}` : "Selecciona un vendedor" }, ...sellerOptions.map((seller) => ({ value: seller.id, label: seller.name }))]} /> : <p className="mt-2 rounded-xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground">Necesitas permiso para listar vendedores antes de vender por otra cuenta.</p>}
         {!accountReady ? <p className="mt-2 text-xs text-danger">Selecciona un vendedor. Esta cuenta administrativa no tiene perfil de vendedor propio.</p> : <p className="mt-2 text-[10px] text-muted-foreground">Puedes usar tu perfil de vendedor o representar a otro vendedor habilitado.</p>}
       </div> : <div>
         <p className="text-xs font-medium text-muted-foreground">Cuenta de venta</p>

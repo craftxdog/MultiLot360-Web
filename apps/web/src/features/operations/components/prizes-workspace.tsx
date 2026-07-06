@@ -6,10 +6,12 @@ import { ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DataPagination } from "@/components/ui/data-pagination";
+import { EntityCombobox } from "@/components/ui/entity-combobox";
 import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { SellerEntityCombobox } from "@/features/shared/components/api-entity-comboboxes";
 import { useUrlQuery } from "../hooks/use-url-query";
-import { operationKeys, prizeOptions, prizesOptions } from "../queries/operations.queries";
+import { operationKeys, prizeOptions, prizesOptions, resultsOptions, winningSalesOptions } from "../queries/operations.queries";
 import { operationsService } from "../services/operations.service";
 import { prizesQuerySchema } from "../utils/operations-query";
 import { OperationDetailDrawer } from "./operation-detail-drawer";
@@ -17,16 +19,32 @@ import { EmptyState, ErrorState, LoadingRows, OperationsShell } from "./operatio
 
 const money = new Intl.NumberFormat("es-NI", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+function ResultEntityCombobox({ name, value, placeholder = "Resultado" }: { name: string; value?: string; placeholder?: string }) {
+  const results = useQuery(resultsOptions({ page: 1, limit: 100, sortBy: "createdAt", sortDirection: "desc" }));
+  const options = (results.data?.data ?? []).map((result) => ({
+    value: result.id,
+    label: `${result.shift.configuration.code} · ${result.winningNumber}`,
+    description: `${result.shift.date} · ${result.shift.status}`,
+  }));
+  return <EntityCombobox name={name} value={value} options={options} placeholder={placeholder} ariaLabel={placeholder} emptyLabel={results.isLoading ? "Cargando resultados…" : "Sin resultados disponibles"} />;
+}
+
 export function PrizesWorkspace() {
   const { query, update, pathname } = useUrlQuery(prizesQuerySchema);
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
+  const [payResultId, setPayResultId] = useState("");
+  const [paySaleId, setPaySaleId] = useState("");
   const list = useQuery(prizesOptions(query));
   const detail = useQuery(prizeOptions(selectedSaleId ?? ""));
+  const recentResults = useQuery(resultsOptions({ page: 1, limit: 100, sortBy: "createdAt", sortDirection: "desc" }));
+  const pendingWinners = useQuery(winningSalesOptions(payResultId, { page: 1, limit: 100, paid: false }));
   const user = useCurrentUser();
   const client = useQueryClient();
   const pay = useMutation({
     mutationFn: operationsService.payPrize,
     onSuccess: () => {
+      setPayResultId("");
+      setPaySaleId("");
       void client.invalidateQueries({ queryKey: operationKeys.prizes });
       void client.invalidateQueries({ queryKey: operationKeys.results });
       toast.success("Premio pagado y auditado");
@@ -49,8 +67,8 @@ export function PrizesWorkspace() {
     }}>
       <Input name="date" type="date" defaultValue={query.date} />
       <Input name="drawCode" placeholder="Sorteo" defaultValue={query.drawCode} />
-      <Input name="sellerId" placeholder="ID vendedor" defaultValue={query.sellerId} />
-      <Input name="resultId" placeholder="ID resultado" defaultValue={query.resultId} />
+      <SellerEntityCombobox name="sellerId" value={query.sellerId} placeholder="Vendedor" />
+      <ResultEntityCombobox name="resultId" value={query.resultId} />
       <Input name="paidFrom" type="date" defaultValue={query.paidFrom} />
       <div className="flex gap-2"><Input name="paidUntil" type="date" defaultValue={query.paidUntil} /><Button type="submit" variant="secondary">Filtrar</Button></div>
     </form>
@@ -61,11 +79,20 @@ export function PrizesWorkspace() {
       <summary className="cursor-pointer list-none"><span className="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"><Plus className="h-4 w-4" />Pagar</span></summary>
       <form className="absolute right-0 z-20 mt-2 w-80 space-y-3 rounded-2xl border border-border bg-background p-4 shadow-2xl" onSubmit={(event) => {
         event.preventDefault();
-        const form = new FormData(event.currentTarget);
-        pay.mutate({ resultId: String(form.get("resultId")), saleId: String(form.get("saleId")) });
+        if (!payResultId || !paySaleId) {
+          toast.error("Selecciona un resultado y una venta ganadora.");
+          return;
+        }
+        pay.mutate({ resultId: payResultId, saleId: paySaleId });
       }}>
-        <Input name="resultId" placeholder="ID resultado" required />
-        <Input name="saleId" placeholder="ID venta ganadora" required />
+        <select value={payResultId} onChange={(event) => { setPayResultId(event.target.value); setPaySaleId(""); }} className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm">
+          <option value="">{recentResults.isLoading ? "Cargando resultados…" : "Selecciona resultado"}</option>
+          {recentResults.data?.data.map((result) => <option key={result.id} value={result.id}>{result.shift.configuration.code} · {result.winningNumber} · {result.shift.date}</option>)}
+        </select>
+        <select value={paySaleId} onChange={(event) => setPaySaleId(event.target.value)} disabled={!payResultId || pendingWinners.isLoading} className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60">
+          <option value="">{!payResultId ? "Selecciona resultado primero" : pendingWinners.isLoading ? "Cargando ganadores…" : "Selecciona venta ganadora"}</option>
+          {pendingWinners.data?.data.map((winner) => <option key={winner.saleId} value={winner.saleId}>{winner.seller.name} · C$ {money.format(winner.winningPrizeMiles * 1000)}</option>)}
+        </select>
         <Button type="submit" className="w-full" disabled={pay.isPending}>Confirmar pago</Button>
       </form>
     </details>

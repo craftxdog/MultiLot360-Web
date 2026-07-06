@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DataPagination } from "@/components/ui/data-pagination";
 import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { UserEntityCombobox } from "@/features/shared/components/api-entity-comboboxes";
 import { useUrlQuery } from "../hooks/use-url-query";
 import { cutOptions, cutSummaryOptions, cutsOptions, operationKeys } from "../queries/operations.queries";
 import { operationsService } from "../services/operations.service";
@@ -53,7 +54,7 @@ export function CutsWorkspace() {
       <Input name="startDate" type="date" defaultValue={query.startDate} />
       <Input name="endDate" type="date" defaultValue={query.endDate} />
       <select name="visibleToSellers" defaultValue={query.visibleToSellers === undefined ? "" : String(query.visibleToSellers)} className="h-11 rounded-xl border border-border bg-background px-3 text-sm"><option value="">Toda visibilidad</option><option value="true">Visible</option><option value="false">Interno</option></select>
-      <Input name="createdByUserId" placeholder="ID creador" defaultValue={query.createdByUserId} />
+      <UserEntityCombobox name="createdByUserId" value={query.createdByUserId} placeholder="Creador" />
       <select name="sortBy" defaultValue={query.sortBy} className="h-11 rounded-xl border border-border bg-background px-3 text-sm"><option value="createdAt">Creación</option><option value="startDate">Inicio</option><option value="endDate">Final</option></select>
       <Button type="submit" variant="secondary">Aplicar</Button>
     </form>

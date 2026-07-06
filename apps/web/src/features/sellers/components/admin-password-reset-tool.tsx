@@ -9,6 +9,7 @@ import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { adminResetPasswordSchema } from "@/features/auth/schemas/password-reset.schema";
+import { UserEntityCombobox } from "@/features/shared/components/api-entity-comboboxes";
 import { useSellerMutations } from "../hooks/use-seller-mutations";
 
 export function AdminPasswordResetTool() {
@@ -37,8 +38,8 @@ export function AdminPasswordResetTool() {
             resetPassword.mutate(parsed.data, { onSuccess: () => { formElement.reset(); setOpen(false); } });
           }}>
             <div className="flex-1 space-y-5 overflow-y-auto p-5">
-              <div className="flex gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" /><p className="text-xs leading-5 text-muted-foreground">Usa el ID interno de <code>usuarios.id</code>. La API sólo permite cuentas activas enlazadas a Supabase, revoca sus sesiones de refresh y registra la operación en auditoría.</p></div>
-              <div><Label htmlFor="admin-target-user">ID interno del usuario</Label><Input id="admin-target-user" name="targetUserId" placeholder="UUID de usuarios.id" className="mt-2 font-mono" aria-invalid={Boolean(errors.targetUserId)} required /><FieldError message={errors.targetUserId?.[0]} /></div>
+              <div className="flex gap-3 rounded-xl border border-primary/15 bg-primary/5 p-4"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" /><p className="text-xs leading-5 text-muted-foreground">Selecciona el usuario desde el directorio. Por debajo se envía el <code>usuarios.id</code> que exige la API; la operación revoca sesiones y queda auditada.</p></div>
+              <div><Label>Usuario</Label><UserEntityCombobox name="targetUserId" placeholder="Usuario a restablecer" className="mt-2" /><FieldError message={errors.targetUserId?.[0]} /></div>
               <div><Label htmlFor="admin-new-password">Nueva contraseña</Label><Input id="admin-new-password" name="newPassword" type="password" minLength={8} maxLength={72} autoComplete="new-password" className="mt-2" aria-invalid={Boolean(errors.newPassword)} required /><FieldError message={errors.newPassword?.[0]} /></div>
               <div><Label htmlFor="admin-confirm-password">Confirmación</Label><Input id="admin-confirm-password" name="confirmPassword" type="password" minLength={8} maxLength={72} autoComplete="new-password" className="mt-2" aria-invalid={Boolean(errors.confirmPassword)} required /><FieldError message={errors.confirmPassword?.[0]} /></div>
             </div>
