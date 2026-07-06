@@ -6,6 +6,7 @@ import { ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DataPagination } from "@/components/ui/data-pagination";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { EntityCombobox } from "@/components/ui/entity-combobox";
 import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -69,8 +70,7 @@ export function PrizesWorkspace() {
       <Input name="drawCode" placeholder="Sorteo" defaultValue={query.drawCode} />
       <SellerEntityCombobox name="sellerId" value={query.sellerId} placeholder="Vendedor" />
       <ResultEntityCombobox name="resultId" value={query.resultId} />
-      <Input name="paidFrom" type="date" defaultValue={query.paidFrom} />
-      <div className="flex gap-2"><Input name="paidUntil" type="date" defaultValue={query.paidUntil} /><Button type="submit" variant="secondary">Filtrar</Button></div>
+      <div className="flex gap-2"><DateRangePicker className="min-w-0 flex-1" fromName="paidFrom" toName="paidUntil" from={query.paidFrom} to={query.paidUntil} placeholder="Rango de pago" /><Button type="submit" variant="secondary">Filtrar</Button></div>
     </form>
   );
 

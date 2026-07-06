@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,8 +72,7 @@ export function NumberLimitForm({ limit, onSuccess }: { limit?: NumberLimit | nu
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div><Label htmlFor="limitMiles">Límite en miles</Label><Input id="limitMiles" type="number" min={1} max={999999} className="mt-2 font-mono" disabled={pending} {...form.register("limitMiles", { valueAsNumber: true })} /><FieldError message={form.formState.errors.limitMiles?.message} /></div>
-        <div><Label htmlFor="validFrom">Vigente desde</Label><Input id="validFrom" type="date" className="mt-2" disabled={pending} {...form.register("validFrom")} /><FieldError message={form.formState.errors.validFrom?.message} /></div>
-        <div className="sm:col-span-2"><Label htmlFor="validUntil">Vigente hasta <span className="font-normal text-muted-foreground">(opcional)</span></Label><Input id="validUntil" type="date" className="mt-2" disabled={pending} {...form.register("validUntil", { setValueAs: (value) => value || undefined })} /><FieldError message={form.formState.errors.validUntil?.message} /></div>
+        <div className="sm:col-span-2"><Label>Vigencia</Label><DateRangePicker className="mt-2" fromName="validFrom" toName="validUntil" from={form.getValues("validFrom")} to={form.getValues("validUntil")} placeholder="Rango de vigencia" allowClear={false} required onChange={(range) => { if (range.from) form.setValue("validFrom", range.from, { shouldValidate: true }); form.setValue("validUntil", range.to || undefined, { shouldValidate: true }); }} /><FieldError message={form.formState.errors.validFrom?.message ?? form.formState.errors.validUntil?.message} /></div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

@@ -6,7 +6,9 @@ import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DataPagination } from "@/components/ui/data-pagination";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { UserEntityCombobox } from "@/features/shared/components/api-entity-comboboxes";
 import { useUrlQuery } from "../hooks/use-url-query";
@@ -51,8 +53,7 @@ export function CutsWorkspace() {
         });
       }}
     >
-      <Input name="startDate" type="date" defaultValue={query.startDate} />
-      <Input name="endDate" type="date" defaultValue={query.endDate} />
+      <DateRangePicker fromName="startDate" toName="endDate" from={query.startDate} to={query.endDate} placeholder="Rango del corte" />
       <select name="visibleToSellers" defaultValue={query.visibleToSellers === undefined ? "" : String(query.visibleToSellers)} className="h-11 rounded-xl border border-border bg-background px-3 text-sm"><option value="">Toda visibilidad</option><option value="true">Visible</option><option value="false">Interno</option></select>
       <UserEntityCombobox name="createdByUserId" value={query.createdByUserId} placeholder="Creador" />
       <select name="sortBy" defaultValue={query.sortBy} className="h-11 rounded-xl border border-border bg-background px-3 text-sm"><option value="createdAt">Creación</option><option value="startDate">Inicio</option><option value="endDate">Final</option></select>
@@ -61,7 +62,7 @@ export function CutsWorkspace() {
   );
 
   const actions = user.data?.permissions.includes("cortes.create") ? (
-    <details className="relative"><summary className="cursor-pointer list-none"><span className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground">Nuevo corte</span></summary><form className="absolute right-0 z-20 mt-2 w-80 space-y-3 rounded-2xl border border-border bg-background p-4 shadow-2xl" onSubmit={(event) => { event.preventDefault(); const form = new FormData(event.currentTarget); create.mutate({ startDate: String(form.get("startDate")), endDate: String(form.get("endDate")), description: String(form.get("description") ?? "") || undefined, visibleToSellers: form.get("visibleToSellers") === "on" }); }}><Input name="startDate" type="date" required /><Input name="endDate" type="date" required /><Input name="description" placeholder="Descripción opcional" /><label className="flex items-center gap-2 text-xs"><input name="visibleToSellers" type="checkbox" defaultChecked />Visible para vendedores</label><Button type="submit" className="w-full">Crear corte</Button></form></details>
+    <details className="relative"><summary className="cursor-pointer list-none"><span className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground">Nuevo corte</span></summary><form className="absolute right-0 z-20 mt-2 w-80 space-y-3 rounded-2xl border border-border bg-background p-4 shadow-2xl" onSubmit={(event) => { event.preventDefault(); const form = new FormData(event.currentTarget); create.mutate({ startDate: String(form.get("startDate")), endDate: String(form.get("endDate")), description: String(form.get("description") ?? "") || undefined, visibleToSellers: form.get("visibleToSellers") === "on" }); }}><DateRangePicker fromName="startDate" toName="endDate" placeholder="Período del corte" allowClear={false} required /><Input name="description" placeholder="Descripción opcional" /><label className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 text-xs"><span>Visible para vendedores</span><Switch name="visibleToSellers" defaultChecked /></label><Button type="submit" className="w-full">Crear corte</Button></form></details>
   ) : null;
 
   return <>

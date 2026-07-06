@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataPagination } from "@/components/ui/data-pagination";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { UserEntityCombobox } from "@/features/shared/components/api-entity-comboboxes";
 import { useUrlQuery } from "../hooks/use-url-query";
@@ -32,8 +33,7 @@ export function AuditWorkspace() {
     }}>
       <Input name="event" placeholder="Tipo de evento" defaultValue={query.event} />
       <UserEntityCombobox name="userId" value={query.userId} placeholder="Actor" />
-      <Input name="createdFrom" type="date" defaultValue={query.createdFrom} />
-      <Input name="createdUntil" type="date" defaultValue={query.createdUntil} />
+      <DateRangePicker fromName="createdFrom" toName="createdUntil" from={query.createdFrom} to={query.createdUntil} placeholder="Rango auditado" />
       <select name="sortBy" defaultValue={query.sortBy} className="h-11 rounded-xl border border-border bg-background px-3 text-sm"><option value="createdAt">Fecha</option><option value="event">Evento</option><option value="id">ID</option></select>
       <Button type="submit" variant="secondary">Aplicar</Button>
     </form>

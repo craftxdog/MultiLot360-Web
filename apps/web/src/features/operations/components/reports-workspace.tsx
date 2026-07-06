@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DataPagination } from "@/components/ui/data-pagination";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { SellerEntityCombobox } from "@/features/shared/components/api-entity-comboboxes";
 import { reportOptions, sellerReportsOptions } from "../queries/operations.queries";
@@ -33,8 +34,7 @@ export function ReportsWorkspace() {
         });
       }}
     >
-      <Input name="dateFrom" type="date" defaultValue={query.dateFrom} aria-label="Fecha inicial" />
-      <Input name="dateUntil" type="date" defaultValue={query.dateUntil} aria-label="Fecha final" />
+      <DateRangePicker fromName="dateFrom" toName="dateUntil" from={query.dateFrom} to={query.dateUntil} placeholder="Rango del reporte" allowClear={false} required />
       <SellerEntityCombobox name="sellerId" value={query.sellerId} placeholder="Vendedor" />
       <Input name="drawCode" placeholder="Código de sorteo" defaultValue={query.drawCode} aria-label="Código de sorteo" />
       <select name="sortBy" defaultValue={query.sortBy} className="h-11 rounded-xl border border-border bg-background px-3 text-sm">
