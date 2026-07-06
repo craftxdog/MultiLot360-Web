@@ -14,6 +14,7 @@ import type {
   SellerDirectoryItem,
   SellerDirectoryQuery,
   SellerDirectoryResult,
+  SellerMutationResponse,
 } from "../types/seller.types";
 import type { AdminResetPasswordPayload, AdminResetPasswordResponse } from "@/features/auth/types/auth.types";
 
@@ -117,6 +118,20 @@ export const sellersApi = {
     return http<RevokeSellerInvitationResponse>(
       `/identity-access/sellers/invitations/${invitationId}/revoke`,
       { method: "PATCH", token: accessToken },
+    );
+  },
+
+  deactivateSeller(sellerId: string, accessToken: string) {
+    return http<SellerMutationResponse>(
+      `/identity-access/sellers/${sellerId}/deactivate`,
+      { method: "PATCH", token: accessToken },
+    );
+  },
+
+  deleteSeller(sellerId: string, accessToken: string) {
+    return http<SellerMutationResponse>(
+      `/identity-access/sellers/${sellerId}`,
+      { method: "DELETE", token: accessToken },
     );
   },
 

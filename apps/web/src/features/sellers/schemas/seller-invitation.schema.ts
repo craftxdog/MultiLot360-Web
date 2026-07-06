@@ -2,6 +2,8 @@ import { isValidPhoneNumber } from "libphonenumber-js/min";
 import { z } from "zod";
 import { sellerInvitationStatuses } from "../types/seller.types";
 
+export const sellerIdSchema = z.uuid("Vendedor inválido.");
+
 function normalizePhone(value: unknown) {
   if (typeof value !== "string") {
     return undefined;

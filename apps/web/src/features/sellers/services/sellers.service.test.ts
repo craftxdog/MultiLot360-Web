@@ -24,6 +24,8 @@ describe("sellers service endpoint coverage", () => {
     await sellersService.createInvitation({ email: "seller@example.com", username: "seller", sellerName: "Seller", documentId: "001-010190-0001A" });
     await sellersService.resendAccessCode("seller@example.com");
     await sellersService.revokeInvitation(id);
+    await sellersService.deactivateSeller(id);
+    await sellersService.deleteSeller(id);
     await sellersService.adminResetPassword({ targetUserId: id, newPassword: "NuevaClave2026!", confirmPassword: "NuevaClave2026!" });
 
     assert.deepEqual(requests.map(({ url, method }) => ({ url, method })), [
@@ -33,8 +35,10 @@ describe("sellers service endpoint coverage", () => {
       { url: "/api/sellers/invitations", method: "POST" },
       { url: "/api/sellers/access-code/resend", method: "POST" },
       { url: `/api/sellers/invitations/${id}/revoke`, method: "PATCH" },
+      { url: `/api/sellers/${id}/deactivate`, method: "PATCH" },
+      { url: `/api/sellers/${id}`, method: "DELETE" },
       { url: "/api/sellers/password-reset", method: "POST" },
     ]);
-    assert.equal(JSON.parse(requests[6]?.body ?? "{}").targetUserId, id);
+    assert.equal(JSON.parse(requests[8]?.body ?? "{}").targetUserId, id);
   });
 });

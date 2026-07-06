@@ -117,3 +117,11 @@ export type RevokeSellerInvitationResponse = {
   email?: string;
   status?: SellerInvitationStatus;
 };
+
+export type SellerMutationResponse = {
+  id?: string;
+  userId?: string;
+  active?: boolean;
+  userActive?: boolean;
+  deleted?: boolean;
+};

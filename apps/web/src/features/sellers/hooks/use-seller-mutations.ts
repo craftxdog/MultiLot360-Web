@@ -44,6 +44,24 @@ export function useSellerMutations() {
     onError: (error) => toast.error(error.message),
   });
 
+  const deactivateSeller = useMutation({
+    mutationFn: (sellerId: string) => sellersService.deactivateSeller(sellerId),
+    onSuccess: async () => {
+      await invalidateSellerData();
+      toast.success("Vendedor desactivado");
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const deleteSeller = useMutation({
+    mutationFn: (sellerId: string) => sellersService.deleteSeller(sellerId),
+    onSuccess: async () => {
+      await invalidateSellerData();
+      toast.success("Vendedor eliminado definitivamente");
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
   const resetPassword = useMutation({
     mutationFn: sellersService.adminResetPassword,
     onSuccess: (response) => toast.success(`Contraseña de @${response.targetUser.username} actualizada`, {
@@ -52,5 +70,5 @@ export function useSellerMutations() {
     onError: (error) => toast.error(error.message),
   });
 
-  return { createInvitation, resendAccessCode, revokeInvitation, resetPassword };
+  return { createInvitation, resendAccessCode, revokeInvitation, deactivateSeller, deleteSeller, resetPassword };
 }

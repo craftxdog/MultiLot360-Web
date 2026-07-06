@@ -10,6 +10,7 @@ import type {
   SellerOverview,
   SellerDirectoryQuery,
   SellerDirectoryResult,
+  SellerMutationResponse,
 } from "../types/seller.types";
 import type { AdminResetPasswordPayload, AdminResetPasswordResponse } from "@/features/auth/types/auth.types";
 
@@ -57,6 +58,18 @@ export const sellersService = {
       `/api/sellers/invitations/${invitationId}/revoke`,
       { method: "PATCH" },
     );
+  },
+
+  deactivateSeller(sellerId: string) {
+    return browserHttp<SellerMutationResponse>(`/api/sellers/${sellerId}/deactivate`, {
+      method: "PATCH",
+    });
+  },
+
+  deleteSeller(sellerId: string) {
+    return browserHttp<SellerMutationResponse>(`/api/sellers/${sellerId}`, {
+      method: "DELETE",
+    });
   },
 
   adminResetPassword(input: AdminResetPasswordPayload) {
