@@ -1,0 +1,1 @@
+import type { Metadata } from "next"; import { ResultsWorkspace } from "@/features/operations/components/results-workspace"; export const metadata:Metadata={title:"Resultados | MultiLot 360"}; export default function Page(){return <ResultsWorkspace/>}

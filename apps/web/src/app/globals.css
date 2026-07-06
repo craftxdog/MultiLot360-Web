@@ -1,0 +1,161 @@
+@import "tailwindcss";
+@import "@svar-ui/react-grid/all.css";
+@source "../../node_modules/bynana-ui/dist";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: "Hedvig Letters Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Hedvig Letters Serif", ui-serif, Georgia, serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+}
+
+:root {
+  color-scheme: light;
+
+  --background: #f4f4f1;
+  --foreground: #171717;
+
+  --card: #ffffff;
+  --card-foreground: #171717;
+
+  --muted: #e9e9e4;
+  --muted-foreground: #6f6f68;
+
+  --border: rgba(23, 23, 23, 0.1);
+  --input: rgba(23, 23, 23, 0.12);
+
+  --primary: #171717;
+  --primary-foreground: #ffffff;
+
+  --accent: rgba(23, 23, 23, 0.055);
+  --accent-foreground: #171717;
+
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: #080808;
+  --foreground: #ffffff;
+
+  --card: #0d0d0d;
+  --card-foreground: #ffffff;
+
+  --muted: #141414;
+  --muted-foreground: rgba(255, 255, 255, 0.42);
+
+  --border: rgba(255, 255, 255, 0.075);
+  --input: rgba(255, 255, 255, 0.08);
+
+  --primary: #ffffff;
+  --primary-foreground: #080808;
+
+  --accent: rgba(255, 255, 255, 0.045);
+  --accent-foreground: #ffffff;
+
+  --danger: #ef4444;
+  --danger-foreground: #ffffff;
+}
+
+.wx-willow-theme {
+  color-scheme: inherit;
+  --wx-table-header-background: color-mix(in oklab, var(--muted) 72%, var(--card));
+  --wx-table-header-cell-border: 1px solid var(--border);
+  --wx-table-cell-border: 1px solid var(--border);
+  --wx-table-border: 1px solid var(--border);
+  --wx-table-fixed-column-border: 1px solid var(--border);
+  --wx-table-select-background: var(--accent);
+  --wx-table-select-color: var(--foreground);
+  --wx-table-select-border: inset 2px 0 var(--foreground);
+  --wx-color-font: var(--foreground);
+  --wx-color-font-alt: var(--muted-foreground);
+  --wx-color-primary: var(--foreground);
+  --wx-background: var(--card);
+  --wx-background-alt: var(--muted);
+  --wx-background-hover: var(--accent);
+  font-family: var(--font-hedvig-sans), system-ui, sans-serif;
+}
+
+.seller-grid .wx-cell,
+.users-grid .wx-cell,
+.draws-grid .wx-cell {
+  padding-inline: 16px;
+}
+
+.seller-grid .wx-row,
+.users-grid .wx-row,
+.draws-grid .wx-row {
+  transition: background-color 150ms ease;
+}
+
+.seller-grid .wx-row:hover,
+.users-grid .wx-row:hover,
+.draws-grid .wx-row:hover {
+  background-color: var(--accent);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
+  overflow-x: clip;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-hedvig-sans), system-ui, sans-serif;
+  overflow-x: clip;
+}
+
+.font-sans {
+  font-family: var(--font-hedvig-sans), system-ui, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-hedvig-serif), Georgia, serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--foreground) 18%, transparent);
+  color: var(--foreground);
+}

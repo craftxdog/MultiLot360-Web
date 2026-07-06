@@ -1,0 +1,10 @@
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
+import { operationsService } from "../services/operations.service";
+import type { AuditQuery, CashCutsQuery, PrizePaymentsQuery, ReportQuery, ResultsQuery, SellerReportsQuery } from "../types/operations.types";
+export const operationKeys = { results: ["results"] as const, prizes: ["prize-payments"] as const, cuts: ["cash-cuts"] as const, reports: ["reports"] as const, audit: ["audit"] as const };
+export const resultsOptions = (q: ResultsQuery) => queryOptions({ queryKey: [...operationKeys.results, q], queryFn: () => operationsService.results(q), placeholderData: keepPreviousData });
+export const prizesOptions = (q: PrizePaymentsQuery) => queryOptions({ queryKey: [...operationKeys.prizes, q], queryFn: () => operationsService.prizes(q), placeholderData: keepPreviousData });
+export const cutsOptions = (q: CashCutsQuery) => queryOptions({ queryKey: [...operationKeys.cuts, q], queryFn: () => operationsService.cuts(q), placeholderData: keepPreviousData });
+export const reportOptions = (q: ReportQuery) => queryOptions({ queryKey: [...operationKeys.reports, "overview", q], queryFn: () => operationsService.report(q) });
+export const sellerReportsOptions = (q: SellerReportsQuery) => queryOptions({ queryKey: [...operationKeys.reports, "sellers", q], queryFn: () => operationsService.sellerReports(q), placeholderData: keepPreviousData });
+export const auditOptions = (q: AuditQuery) => queryOptions({ queryKey: [...operationKeys.audit, q], queryFn: () => operationsService.audit(q), placeholderData: keepPreviousData });

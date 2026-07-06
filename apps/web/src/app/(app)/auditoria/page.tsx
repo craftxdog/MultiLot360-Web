@@ -1,0 +1,1 @@
+import type { Metadata } from "next"; import { AuditWorkspace } from "@/features/operations/components/audit-workspace"; export const metadata:Metadata={title:"Auditoría | MultiLot 360"}; export default function Page(){return <AuditWorkspace/>}

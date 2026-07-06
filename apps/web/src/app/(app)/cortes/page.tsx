@@ -1,0 +1,1 @@
+import type { Metadata } from "next"; import { CutsWorkspace } from "@/features/operations/components/cuts-workspace"; export const metadata:Metadata={title:"Cortes | MultiLot 360"}; export default function Page(){return <CutsWorkspace/>}

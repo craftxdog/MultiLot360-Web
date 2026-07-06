@@ -1,0 +1,1 @@
+import type { Metadata } from "next"; import { PrizesWorkspace } from "@/features/operations/components/prizes-workspace"; export const metadata:Metadata={title:"Premios | MultiLot 360"}; export default function Page(){return <PrizesWorkspace/>}

@@ -1,0 +1,65 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+import { drawsService } from "../services/draws.service";
+import { drawKeys } from "../queries/draw.queries";
+import type { CreateDrawShiftInput } from "../types/draws.types";
+
+export function useDrawShiftMutations() {
+  const queryClient = useQueryClient();
+
+  function invalidate() {
+    return queryClient.invalidateQueries({ queryKey: drawKeys.all });
+  }
+
+  const createShift = useMutation({
+    mutationFn: (input: CreateDrawShiftInput) => drawsService.createShift(input),
+    onSuccess: () => {
+      void invalidate();
+      toast.success("Turno creado correctamente.");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const blockShift = useMutation({
+    mutationFn: (shiftId: string) => drawsService.blockShift(shiftId),
+    onSuccess: () => {
+      void invalidate();
+      toast.success("Turno bloqueado correctamente.");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const reopenShift = useMutation({
+    mutationFn: (shiftId: string) => drawsService.reopenShift(shiftId),
+    onSuccess: () => {
+      void invalidate();
+      toast.success("Turno reabierto correctamente.");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const closeShift = useMutation({
+    mutationFn: (shiftId: string) => drawsService.closeShift(shiftId),
+    onSuccess: () => {
+      void invalidate();
+      toast.success("Turno cerrado correctamente.");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  return {
+    createShift,
+    blockShift,
+    reopenShift,
+    closeShift,
+  };
+}

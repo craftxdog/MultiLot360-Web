@@ -1,0 +1,143 @@
+import "server-only";
+
+import { http, httpEnvelope } from "@/lib/api/http";
+import { buildDrawQueryString } from "../utils/draws-query";
+import type {
+  CreateDrawConfigurationInput,
+  CreateDrawShiftInput,
+  DrawConfiguration,
+  DrawConfigurationsQuery,
+  DrawConfigurationsResult,
+  DrawOverview,
+  DrawPagination,
+  DrawShift,
+  DrawShiftsQuery,
+  DrawShiftsResult,
+  UpdateDrawConfigurationInput,
+} from "../types/draws.types";
+
+function fallbackPagination(page: number, limit: number, count: number): DrawPagination {
+  return {
+    page,
+    limit,
+    count,
+    total: count,
+    totalPages: count > 0 ? 1 : 0,
+    hasNextPage: false,
+    hasPreviousPage: page > 1,
+  };
+}
+
+export const drawsApi = {
+  async getConfigurations(
+    query: DrawConfigurationsQuery,
+    accessToken: string,
+  ): Promise<DrawConfigurationsResult> {
+    const normalized = { page: 1, limit: 10, sortBy: "time" as const, sortDirection: "asc" as const, ...query };
+    const envelope = await httpEnvelope<DrawConfiguration[]>(
+      `/draws/configurations${buildDrawQueryString(normalized)}`,
+      { method: "GET", token: accessToken },
+    );
+
+    return {
+      configurations: envelope.data,
+      pagination:
+        envelope.meta?.pagination ??
+        fallbackPagination(normalized.page, normalized.limit, envelope.data.length),
+    };
+  },
+
+  getConfiguration(configurationId: string, accessToken: string) {
+    return http<DrawConfiguration>(`/draws/configurations/${configurationId}`, {
+      method: "GET",
+      token: accessToken,
+    });
+  },
+
+  createConfiguration(input: CreateDrawConfigurationInput, accessToken: string) {
+    return http<DrawConfiguration>("/draws/configurations", {
+      method: "POST",
+      token: accessToken,
+      body: JSON.stringify(input),
+    });
+  },
+
+  updateConfiguration(
+    configurationId: string,
+    input: UpdateDrawConfigurationInput,
+    accessToken: string,
+  ) {
+    return http<DrawConfiguration>(`/draws/configurations/${configurationId}`, {
+      method: "PATCH",
+      token: accessToken,
+      body: JSON.stringify(input),
+    });
+  },
+
+  async getShifts(
+    query: DrawShiftsQuery,
+    accessToken: string,
+  ): Promise<DrawShiftsResult> {
+    const normalized = { page: 1, limit: 10, sortBy: "date" as const, sortDirection: "desc" as const, ...query };
+    const envelope = await httpEnvelope<DrawShift[]>(
+      `/draws/shifts${buildDrawQueryString(normalized)}`,
+      { method: "GET", token: accessToken },
+    );
+
+    return {
+      shifts: envelope.data,
+      pagination:
+        envelope.meta?.pagination ??
+        fallbackPagination(normalized.page, normalized.limit, envelope.data.length),
+    };
+  },
+
+  async getActiveShifts(
+    query: Omit<DrawShiftsQuery, "status">,
+    accessToken: string,
+  ): Promise<DrawShiftsResult> {
+    const normalized = { page: 1, limit: 10, sortBy: "date" as const, sortDirection: "desc" as const, ...query };
+    const envelope = await httpEnvelope<DrawShift[]>(
+      `/draws/shifts/active${buildDrawQueryString(normalized)}`,
+      { method: "GET", token: accessToken },
+    );
+
+    return {
+      shifts: envelope.data,
+      pagination:
+        envelope.meta?.pagination ??
+        fallbackPagination(normalized.page, normalized.limit, envelope.data.length),
+    };
+  },
+
+  createShift(input: CreateDrawShiftInput, accessToken: string) {
+    return http<DrawShift>("/draws/shifts", {
+      method: "POST",
+      token: accessToken,
+      body: JSON.stringify(input),
+    });
+  },
+
+  transitionShift(shiftId: string, action: "block" | "reopen" | "close", accessToken: string) {
+    return http<DrawShift>(`/draws/shifts/${shiftId}/${action}`, {
+      method: "PATCH",
+      token: accessToken,
+    });
+  },
+
+  async getOverview(accessToken: string): Promise<DrawOverview> {
+    const [open, blocked, closed, configurations] = await Promise.all([
+      this.getShifts({ page: 1, limit: 1, status: "ABIERTO" }, accessToken),
+      this.getShifts({ page: 1, limit: 1, status: "BLOQUEO" }, accessToken),
+      this.getShifts({ page: 1, limit: 1, status: "CERRADO" }, accessToken),
+      this.getConfigurations({ page: 1, limit: 1, active: true }, accessToken),
+    ]);
+
+    return {
+      open: open.pagination.total,
+      blocked: blocked.pagination.total,
+      closed: closed.pagination.total,
+      activeConfigurations: configurations.pagination.total,
+    };
+  },
+};
