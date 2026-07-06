@@ -30,6 +30,7 @@ describe("operations service endpoint coverage", () => {
     await operationsService.createCut({ startDate: "2026-07-01", endDate: "2026-07-05" });
     await operationsService.cutSummary(id);
     await operationsService.report({ dateFrom: "2026-07-01", dateUntil: "2026-07-05" });
+    await operationsService.analytics({ dateFrom: "2026-07-01", dateUntil: "2026-07-05", topLimit: 8 });
     await operationsService.sellerReports({ dateFrom: "2026-07-01", dateUntil: "2026-07-05" });
     await operationsService.audit({ userId: id });
     await operationsService.auditEvent(id);
@@ -47,6 +48,7 @@ describe("operations service endpoint coverage", () => {
       { url: "/api/operations/cuts", method: "POST" },
       { url: `/api/operations/cuts/${id}/summary`, method: "GET" },
       { url: "/api/operations/reports/overview?dateFrom=2026-07-01&dateUntil=2026-07-05", method: "GET" },
+      { url: "/api/operations/reports/analytics?dateFrom=2026-07-01&dateUntil=2026-07-05&topLimit=8", method: "GET" },
       { url: "/api/operations/reports/sellers?dateFrom=2026-07-01&dateUntil=2026-07-05", method: "GET" },
       { url: `/api/operations/audit?userId=${id}`, method: "GET" },
       { url: `/api/operations/audit/${id}`, method: "GET" },

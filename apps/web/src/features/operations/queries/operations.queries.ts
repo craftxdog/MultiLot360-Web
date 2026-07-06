@@ -2,6 +2,7 @@ import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { operationsService } from "../services/operations.service";
 import type {
   AuditQuery,
+  BusinessAnalyticsQuery,
   CashCutsQuery,
   PrizePaymentsQuery,
   ReportQuery,
@@ -21,6 +22,7 @@ export const operationKeys = {
   cut: (id: string) => ["cash-cuts", "detail", id] as const,
   cutSummary: (id: string) => ["cash-cuts", "summary", id] as const,
   reports: ["reports"] as const,
+  analytics: (query: BusinessAnalyticsQuery) => [...operationKeys.reports, "analytics", query] as const,
   audit: ["audit"] as const,
   auditEvent: (id: string) => ["audit", "detail", id] as const,
 };
@@ -85,6 +87,13 @@ export const reportOptions = (query: ReportQuery) =>
   queryOptions({
     queryKey: [...operationKeys.reports, "overview", query],
     queryFn: () => operationsService.report(query),
+  });
+
+export const analyticsOptions = (query: BusinessAnalyticsQuery) =>
+  queryOptions({
+    queryKey: operationKeys.analytics(query),
+    queryFn: () => operationsService.analytics(query),
+    staleTime: 30_000,
   });
 
 export const sellerReportsOptions = (query: SellerReportsQuery) =>

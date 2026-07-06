@@ -20,6 +20,28 @@ export type SellerReport = { salesCount?: number; activeSalesCount: number; void
 export type OperationalReport = ReportQuery & SellerReport & { filters: ReportQuery };
 export type SellerOperationalReport = SellerReport & { sellerId: string; sellerName: string };
 export type SellerReportsQuery = ReportQuery & { page?: number; limit?: number; sortBy?: "sellerName" | "netSalesMiles" | "paidPrizesMiles" | "balanceMiles"; sortDirection?: SortDirection };
+export type BusinessAnalyticsQuery = ReportQuery & { topLimit?: number };
+export type BusinessAnalyticsSellerKpi = SellerReport & { sellerId: string; sellerName: string; averageTicketMiles: number; numbersSoldCount: number; contributionPercent: number };
+export type BusinessAnalyticsNumberKpi = { number: string; ticketsCount: number; sellersCount: number; netSalesMiles: number; averagePrizeMiles: number };
+export type BusinessAnalyticsDayKpi = { date: string; salesCount: number; sellersCount: number; netSalesMiles: number; grossSalesMiles: number; averageTicketMiles: number };
+export type BusinessAnalyticsSummary = SellerReport & {
+  averageTicketMiles: number;
+  activeSellersCount: number;
+  numbersSoldCount: number;
+  bestSeller: Pick<BusinessAnalyticsSellerKpi, "sellerId" | "sellerName" | "netSalesMiles"> | null;
+  bestNumber: Pick<BusinessAnalyticsNumberKpi, "number" | "netSalesMiles" | "ticketsCount"> | null;
+  bestDay: Pick<BusinessAnalyticsDayKpi, "date" | "netSalesMiles" | "salesCount"> | null;
+};
+export type BusinessAnalyticsProjection = { periodDays: number; averageDailyNetSalesMiles: number; projectedNext7DaysNetSalesMiles: number; projectedNext30DaysNetSalesMiles: number };
+export type BusinessAnalyticsReport = {
+  filters: ReportQuery & { topLimit: number };
+  summary: BusinessAnalyticsSummary;
+  sellers: BusinessAnalyticsSellerKpi[];
+  topNumbers: BusinessAnalyticsNumberKpi[];
+  bestDays: BusinessAnalyticsDayKpi[];
+  trend: BusinessAnalyticsDayKpi[];
+  projection: BusinessAnalyticsProjection;
+};
 
 export type AuditEvent = { id: string; userId: string | null; event: string; payload: unknown; actor: Person | null; createdAt: string };
 export type AuditQuery = { page?: number; limit?: number; userId?: string; event?: string; createdFrom?: string; createdUntil?: string; sortBy?: "createdAt" | "event" | "id"; sortDirection?: SortDirection };

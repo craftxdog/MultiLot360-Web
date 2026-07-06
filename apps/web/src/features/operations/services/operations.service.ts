@@ -1,5 +1,5 @@
 import { browserHttp } from "@/lib/api/browser-http";
-import type { AuditEvent, AuditQuery, CashCut, CashCutsQuery, CashCutSummary, OperationalReport, PageResult, PrizePayment, PrizePaymentsQuery, ReportQuery, Result, ResultsQuery, SellerOperationalReport, SellerReportsQuery, WinningSale, WinningSalesQuery } from "../types/operations.types";
+import type { AuditEvent, AuditQuery, BusinessAnalyticsQuery, BusinessAnalyticsReport, CashCut, CashCutsQuery, CashCutSummary, OperationalReport, PageResult, PrizePayment, PrizePaymentsQuery, ReportQuery, Result, ResultsQuery, SellerOperationalReport, SellerReportsQuery, WinningSale, WinningSalesQuery } from "../types/operations.types";
 import { queryString } from "../utils/operations-query";
 const json = { "Content-Type": "application/json" };
 export const operationsService = {
@@ -15,6 +15,7 @@ export const operationsService = {
   cut: (id: string) => browserHttp<CashCut>(`/api/operations/cuts/${id}`),
   cutSummary: (id: string) => browserHttp<CashCutSummary>(`/api/operations/cuts/${id}/summary`),
   report: (query: ReportQuery) => browserHttp<OperationalReport>(`/api/operations/reports/overview${queryString(query)}`),
+  analytics: (query: BusinessAnalyticsQuery) => browserHttp<BusinessAnalyticsReport>(`/api/operations/reports/analytics${queryString(query)}`),
   sellerReports: (query: SellerReportsQuery) => browserHttp<PageResult<SellerOperationalReport>>(`/api/operations/reports/sellers${queryString(query)}`),
   audit: (query: AuditQuery) => browserHttp<PageResult<AuditEvent>>(`/api/operations/audit${queryString(query)}`),
   auditEvent: (id: string) => browserHttp<AuditEvent>(`/api/operations/audit/${id}`),
