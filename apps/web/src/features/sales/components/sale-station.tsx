@@ -55,7 +55,8 @@ export function SaleStation() {
   const sellerOptions = sellers.data?.sellers ?? [];
   const effectiveSellerId = isAdmin && selectedSellerId && canReadSellers && sellerOptions.some((seller) => seller.id === selectedSellerId) ? selectedSellerId : null;
   const canSellAsSelf = Boolean(user.data?.seller?.id);
-  const accountReady = isAdmin ? true : canSellAsSelf;
+  const adminHasResponsibleSeller = Boolean(effectiveSellerId || user.data?.seller?.id);
+  const accountReady = isAdmin ? adminHasResponsibleSeller : canSellAsSelf;
   const amountsReady = items.length > 0 && items.every((item) => createSaleSchema.shape.items.element.safeParse(item).success);
 
   async function submit() {
@@ -83,8 +84,8 @@ export function SaleStation() {
 
       {isAdmin ? <div>
         <p className="text-xs font-medium text-muted-foreground">Registrar venta para</p>
-        {canReadSellers ? <SalesSelect className="mt-2" ariaLabel="Vendedor" value={effectiveSellerId ?? ""} onChange={(value) => selectSeller(value || null)} options={[{ value: "", label: canSellAsSelf ? `Mi cuenta · ${user.data?.seller?.name ?? user.data?.username}` : `Cuenta admin · ${user.data?.username ?? "Administrador"}` }, ...sellerOptions.map((seller) => ({ value: seller.id, label: seller.name }))]} /> : <div className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-4"><UserRoundCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" /><div><p className="text-sm font-medium text-foreground">{user.data?.username ?? "Administrador"}</p><p className="text-[10px] text-muted-foreground">Venta directa como administrador.</p></div></div>}
-        <p className="mt-2 text-[10px] text-muted-foreground">{effectiveSellerId ? "La venta se registrará representando al vendedor seleccionado." : "Si no eliges vendedor, la venta se registra como operación administrativa."}</p>
+        {canReadSellers ? <SalesSelect className="mt-2" ariaLabel="Vendedor" value={effectiveSellerId ?? ""} onChange={(value) => selectSeller(value || null)} options={[{ value: "", label: canSellAsSelf ? `Mi cuenta · ${user.data?.seller?.name ?? user.data?.username}` : "Selecciona un vendedor responsable" }, ...sellerOptions.map((seller) => ({ value: seller.id, label: seller.name }))]} /> : <div className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-4"><UserRoundCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" /><div><p className="text-sm font-medium text-foreground">{user.data?.seller?.name ?? user.data?.username ?? "Administrador"}</p><p className="text-[10px] text-muted-foreground">{canSellAsSelf ? "Venta con tu perfil vendedor asociado." : "Necesitas elegir un vendedor responsable para esta API."}</p></div></div>}
+        <p className={`mt-2 text-[10px] ${accountReady ? "text-muted-foreground" : "text-danger"}`}>{effectiveSellerId ? "La venta se registrará representando al vendedor seleccionado." : canSellAsSelf ? "La API usará tu vendedor asociado del token." : "La API actual requiere un sellerId; selecciona un vendedor antes de registrar."}</p>
       </div> : <div>
         <p className="text-xs font-medium text-muted-foreground">Cuenta de venta</p>
         <div className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-4"><UserRoundCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" /><div><p className="text-sm font-medium text-foreground">{user.data?.seller?.name ?? user.data?.username ?? "Vendedor"}</p><p className="text-[10px] text-muted-foreground">La venta queda fijada a tu propia cuenta.</p></div></div>
@@ -102,6 +103,7 @@ export function SaleStation() {
       <div className="sticky top-[4.5rem] z-20 xl:static"><FastSaleEntry disabled={unavailable || !accountReady || createSale.isPending} /></div>
       <aside className="sticky top-[4.5rem] hidden space-y-3 xl:block">
         <SaleCart />
+        {!accountReady ? <div role="status" className="rounded-xl border border-danger/25 bg-danger/10 p-3 text-sm text-danger">{isAdmin ? "Selecciona un vendedor responsable. El backend actual aún exige sellerId para crear la venta." : "Tu usuario no tiene un perfil de vendedor activo asociado."}</div> : null}
         {!amountsReady && items.length ? <div role="status" className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">Completa un monto válido para cada número antes de registrar.</div> : null}
         {createSale.error ? <div role="alert" className="rounded-xl border border-danger/25 bg-danger/10 p-3 text-sm text-danger">{createSale.error.message}<p className="mt-1 text-xs opacity-80">El ticket se conservó para que puedas corregirlo.</p></div> : null}
         <Button className="h-14 w-full gap-2 text-base" disabled={!canSubmit} onClick={submit}><TicketCheck className="h-5 w-5" />{createSale.isPending ? "Validando y registrando…" : "Registrar ticket"}</Button>
