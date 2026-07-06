@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useParameterMutations } from "../hooks/use-parameter-mutations";
+import { useParameter } from "../hooks/use-parameters";
 import {
   upsertSystemParameterSchema,
   type ParameterEditorInput,
@@ -43,6 +44,8 @@ export function ParameterEditorDrawer() {
   );
   const close = useParameterWorkspaceStore((state) => state.closeEditor);
   const { upsertParameter } = useParameterMutations();
+  const detail = useParameter(selected?.key ?? "");
+  const currentParameter = detail.data ?? selected;
   const {
     register,
     control,
@@ -64,11 +67,11 @@ export function ParameterEditorDrawer() {
 
   useEffect(() => {
     reset(
-      selected
-        ? { key: selected.key, value: selected.value }
+      currentParameter
+        ? { key: currentParameter.key, value: currentParameter.value }
         : emptyValues,
     );
-  }, [open, reset, selected]);
+  }, [currentParameter, open, reset]);
 
   const closeDrawer = () => {
     if (!upsertParameter.isPending) close();
@@ -140,6 +143,12 @@ export function ParameterEditorDrawer() {
                     Una clave existente no se puede renombrar desde esta vista.
                   </p>
                 </div>
+
+                {detail.error ? (
+                  <div role="alert" className="rounded-xl border border-danger/25 bg-danger/10 p-3 text-xs text-danger">
+                    {detail.error.message}
+                  </div>
+                ) : null}
 
                 <div>
                   <Label htmlFor="parameterKey">Clave técnica</Label>

@@ -8,6 +8,7 @@ import { parametersApi } from "@/features/parameters/server/parameters-api";
 import { parseParametersQuery } from "@/features/parameters/utils/parameter-query";
 import { getAccessToken } from "@/lib/auth/session";
 import { getServerQueryClient } from "@/lib/query-server";
+import { requirePagePermission } from "@/lib/auth/require-page-access";
 
 type ParametersPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -16,6 +17,7 @@ type ParametersPageProps = {
 export default async function ParametersPage({
   searchParams,
 }: ParametersPageProps) {
+  await requirePagePermission("parametros.read");
   const rawParams = await searchParams;
   const params = new URLSearchParams();
 

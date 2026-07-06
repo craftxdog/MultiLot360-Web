@@ -14,7 +14,11 @@ export const metadata: Metadata = { title: "Matriz de ventas | MultiLot 360" };
 
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await getCurrentUser();
-  if (!user?.permissions.includes("matriz_ventas.read") || user.role.name.toUpperCase() !== "ADMIN") redirect(routes.dashboard);
+  if (
+    !user?.permissions.includes("matriz_ventas.read") ||
+    user.role.name.toUpperCase() !== "ADMIN" ||
+    !user.modules.some((moduleName) => moduleName.toUpperCase() === "MATRIZ_VENTAS")
+  ) redirect(routes.dashboard);
   const raw = await searchParams;
   const params = new URLSearchParams();
   Object.entries(raw).forEach(([key, value]) => typeof value === "string" && params.set(key, value));

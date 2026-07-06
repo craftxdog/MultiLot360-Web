@@ -1,12 +1,12 @@
 import { browserHttp } from "@/lib/api/browser-http";
-import type { AuditEvent, AuditQuery, CashCut, CashCutsQuery, CashCutSummary, OperationalReport, PageResult, PrizePayment, PrizePaymentsQuery, ReportQuery, Result, ResultsQuery, SellerOperationalReport, SellerReportsQuery } from "../types/operations.types";
+import type { AuditEvent, AuditQuery, CashCut, CashCutsQuery, CashCutSummary, OperationalReport, PageResult, PrizePayment, PrizePaymentsQuery, ReportQuery, Result, ResultsQuery, SellerOperationalReport, SellerReportsQuery, WinningSale, WinningSalesQuery } from "../types/operations.types";
 import { queryString } from "../utils/operations-query";
 const json = { "Content-Type": "application/json" };
 export const operationsService = {
   results: (query: ResultsQuery) => browserHttp<PageResult<Result>>(`/api/operations/results${queryString(query)}`),
   createResult: (input: { shiftId: string; winningNumber: string }) => browserHttp<Result>("/api/operations/results", { method: "POST", headers: json, body: JSON.stringify(input) }),
   result: (id: string) => browserHttp<Result>(`/api/operations/results/${id}`),
-  winningSales: (id: string, query: Record<string, unknown>) => browserHttp(`/api/operations/results/${id}/winning-sales${queryString(query)}`),
+  winningSales: (id: string, query: WinningSalesQuery) => browserHttp<PageResult<WinningSale>>(`/api/operations/results/${id}/winning-sales${queryString(query)}`),
   prizes: (query: PrizePaymentsQuery) => browserHttp<PageResult<PrizePayment>>(`/api/operations/prizes${queryString(query)}`),
   payPrize: (input: { resultId: string; saleId: string }) => browserHttp<PrizePayment>("/api/operations/prizes", { method: "POST", headers: json, body: JSON.stringify(input) }),
   prize: (saleId: string) => browserHttp<PrizePayment>(`/api/operations/prizes/${saleId}`),

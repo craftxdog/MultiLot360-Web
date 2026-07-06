@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  parameterDetailQueryOptions,
   parameterOverviewQueryOptions,
   parametersQueryOptions,
 } from "../queries/parameter.queries";
@@ -11,4 +12,8 @@ export function useParameters(query: ParametersQuery) {
 
 export function useParameterOverview() {
   return useQuery(parameterOverviewQueryOptions());
+}
+
+export function useParameter(key: string) {
+  return useQuery(parameterDetailQueryOptions(key));
 }

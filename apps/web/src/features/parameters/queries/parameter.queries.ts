@@ -30,5 +30,6 @@ export function parameterDetailQueryOptions(key: string) {
   return queryOptions({
     queryKey: parameterKeys.detail(key),
     queryFn: () => parametersService.getParameter(key),
+    enabled: Boolean(key),
   });
 }
