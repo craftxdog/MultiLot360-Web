@@ -10,6 +10,7 @@ export function useSalesMutations() {
   const client = useQueryClient();
   const clearDraft = useSalesWorkspaceStore((state) => state.clearDraft);
   const closeCart = useSalesWorkspaceStore((state) => state.closeCart);
+  const openSaleDetails = useSalesWorkspaceStore((state) => state.openSaleDetails);
   const invalidate = () => client.invalidateQueries({ queryKey: salesKeys.all });
 
   const createSale = useMutation({
@@ -18,6 +19,7 @@ export function useSalesMutations() {
       client.setQueryData(salesKeys.detail(sale.id), sale);
       clearDraft();
       closeCart();
+      openSaleDetails(sale.id);
       void invalidate();
       toast.success(`Venta #${sale.id.slice(0, 8).toUpperCase()} registrada.`);
     },

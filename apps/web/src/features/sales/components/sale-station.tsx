@@ -55,7 +55,7 @@ export function SaleStation() {
   const sellerOptions = sellers.data?.sellers ?? [];
   const effectiveSellerId = isAdmin && selectedSellerId && canReadSellers && sellerOptions.some((seller) => seller.id === selectedSellerId) ? selectedSellerId : null;
   const canSellAsSelf = Boolean(user.data?.seller?.id);
-  const accountReady = isAdmin ? canSellAsSelf || Boolean(effectiveSellerId) : canSellAsSelf;
+  const accountReady = isAdmin ? true : canSellAsSelf;
   const amountsReady = items.length > 0 && items.every((item) => createSaleSchema.shape.items.element.safeParse(item).success);
 
   async function submit() {
@@ -83,8 +83,8 @@ export function SaleStation() {
 
       {isAdmin ? <div>
         <p className="text-xs font-medium text-muted-foreground">Registrar venta para</p>
-        {canReadSellers ? <SalesSelect className="mt-2" ariaLabel="Vendedor" value={effectiveSellerId ?? ""} onChange={(value) => selectSeller(value || null)} options={[{ value: "", label: canSellAsSelf ? `Mi cuenta · ${user.data?.seller?.name ?? user.data?.username}` : "Selecciona un vendedor" }, ...sellerOptions.map((seller) => ({ value: seller.id, label: seller.name }))]} /> : <p className="mt-2 rounded-xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground">Necesitas permiso para listar vendedores antes de vender por otra cuenta.</p>}
-        {!accountReady ? <p className="mt-2 text-xs text-danger">Selecciona un vendedor. Esta cuenta administrativa no tiene perfil de vendedor propio.</p> : <p className="mt-2 text-[10px] text-muted-foreground">Puedes usar tu perfil de vendedor o representar a otro vendedor habilitado.</p>}
+        {canReadSellers ? <SalesSelect className="mt-2" ariaLabel="Vendedor" value={effectiveSellerId ?? ""} onChange={(value) => selectSeller(value || null)} options={[{ value: "", label: canSellAsSelf ? `Mi cuenta · ${user.data?.seller?.name ?? user.data?.username}` : `Cuenta admin · ${user.data?.username ?? "Administrador"}` }, ...sellerOptions.map((seller) => ({ value: seller.id, label: seller.name }))]} /> : <div className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-4"><UserRoundCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" /><div><p className="text-sm font-medium text-foreground">{user.data?.username ?? "Administrador"}</p><p className="text-[10px] text-muted-foreground">Venta directa como administrador.</p></div></div>}
+        <p className="mt-2 text-[10px] text-muted-foreground">{effectiveSellerId ? "La venta se registrará representando al vendedor seleccionado." : "Si no eliges vendedor, la venta se registra como operación administrativa."}</p>
       </div> : <div>
         <p className="text-xs font-medium text-muted-foreground">Cuenta de venta</p>
         <div className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-4"><UserRoundCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" /><div><p className="text-sm font-medium text-foreground">{user.data?.seller?.name ?? user.data?.username ?? "Vendedor"}</p><p className="text-[10px] text-muted-foreground">La venta queda fijada a tu propia cuenta.</p></div></div>
