@@ -2,6 +2,31 @@ import type { Metadata, Viewport } from "next";
 import { Providers } from "./providers";
 import "./globals.css";
 
+const themeScript = `
+try {
+  var key = "multilot-theme";
+  var theme = localStorage.getItem(key) || "dark";
+  var resolved = theme === "system"
+    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    : theme;
+  document.documentElement.classList.toggle("dark", resolved === "dark");
+  document.documentElement.style.colorScheme = resolved;
+} catch (_) {
+  document.documentElement.classList.add("dark");
+  document.documentElement.style.colorScheme = "dark";
+}
+`;
+
+function ThemeInitScript() {
+  return (
+    <script
+      type={typeof window === "undefined" ? "text/javascript" : "text/plain"}
+      suppressHydrationWarning
+      dangerouslySetInnerHTML={{ __html: themeScript }}
+    />
+  );
+}
+
 export const metadata: Metadata = {
   title: "MultiLot 360",
   description: "Plataforma de gestión operativa para loterías.",
@@ -28,6 +53,7 @@ export default function RootLayout({
       className="dark"
     >
       <body className="font-sans antialiased">
+        <ThemeInitScript />
         <Providers>{children}</Providers>
       </body>
     </html>
