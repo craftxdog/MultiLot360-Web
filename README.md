@@ -26,3 +26,14 @@ Este comando ejecuta ESLint, TypeScript, pruebas y build de producción.
 La primera vertical refactorizada es autenticación. Su estructura, flujo de
 sesión, contrato de API y decisiones para web/desktop están documentados en
 [docs/frontend-authentication.md](docs/frontend-authentication.md).
+
+La matriz completa de endpoints, adaptadores BFF, consumidores de UI y
+evidencia de verificación está en
+[docs/api-consumption-audit.md](docs/api-consumption-audit.md).
+
+## Entrega y despliegue
+
+El repositorio usa Gitflow con `develop` como rama de integración y `master`
+como rama publicable. La automatización valida cada push/PR y, al publicar en
+`master`, construye una imagen standalone de Next.js en GitHub Container
+Registry. Consulta [docs/gitflow-and-delivery.md](docs/gitflow-and-delivery.md).
