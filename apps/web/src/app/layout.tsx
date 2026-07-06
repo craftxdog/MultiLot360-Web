@@ -30,6 +30,12 @@ function ThemeInitScript() {
 export const metadata: Metadata = {
   title: "MultiLot 360",
   description: "Plataforma de gestión operativa para loterías.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "MultiLot 360",
+  },
 };
 
 export const viewport: Viewport = {
