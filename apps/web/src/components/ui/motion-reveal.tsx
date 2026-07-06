@@ -1,6 +1,6 @@
 "use client";
 
-import { BlurFade } from "bynana-ui/blur-fade";
+import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 type MotionRevealProps = {
@@ -15,8 +15,8 @@ export function MotionReveal({
   delay = 0,
 }: MotionRevealProps) {
   return (
-    <BlurFade className={className} delay={delay} duration={0.55} blur={8}>
+    <motion.div className={className} initial={{ opacity: 0, y: 6, filter: "blur(6px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} transition={{ delay, duration: 0.35 }}>
       {children}
-    </BlurFade>
+    </motion.div>
   );
 }

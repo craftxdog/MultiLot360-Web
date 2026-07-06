@@ -40,7 +40,7 @@ function mergeItems(current: SaleDraftItem[], incoming: SaleDraftItem[]) {
             ? existing.prizeMiles
             : existing.prizeMiles === null
               ? item.prizeMiles
-              : Math.min(999_999, existing.prizeMiles + item.prizeMiles),
+              : Math.min(999_999, Math.round((existing.prizeMiles + item.prizeMiles) * 100) / 100),
       });
     } else if (merged.size < 100) {
       merged.set(item.number, item);

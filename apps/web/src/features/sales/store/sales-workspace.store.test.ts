@@ -11,6 +11,12 @@ describe("sales workspace store", () => {
     assert.deepEqual(useSalesWorkspaceStore.getState().items, [{ number: "02", prizeMiles: 25 }]);
   });
 
+  it("merges decimal amounts without floating-point drift", () => {
+    useSalesWorkspaceStore.getState().addItem({ number: "02", prizeMiles: 0.1 });
+    useSalesWorkspaceStore.getState().addItem({ number: "02", prizeMiles: 0.2 });
+    assert.deepEqual(useSalesWorkspaceStore.getState().items, [{ number: "02", prizeMiles: 0.3 }]);
+  });
+
   it("adds a complete batch in one store update and merges repeated numbers", () => {
     useSalesWorkspaceStore.getState().addItem({ number: "02", prizeMiles: 5 });
     useSalesWorkspaceStore.getState().addItems([

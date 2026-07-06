@@ -1,7 +1,6 @@
 "use client";
 
 import { Ban, Globe2, ShieldCheck, UserRound } from "lucide-react";
-import { CountUp } from "bynana-ui/count-up";
 import { useNumberControlOverview } from "../hooks/use-number-control";
 
 const cards = [
@@ -21,7 +20,7 @@ export function NumberControlOverview() {
           <article key={card.key} className="group relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
             <div className="absolute -right-7 -top-7 h-20 w-20 rounded-full bg-muted/70 transition-transform group-hover:scale-110" />
             <div className="relative flex items-start justify-between gap-3">
-              <div><p className="text-xs text-muted-foreground">{card.label}</p><p className="mt-3 font-mono text-2xl font-semibold tabular-nums text-foreground">{result.isLoading ? "—" : <CountUp end={result.data?.[card.key] ?? 0} duration={600} />}</p><p className="mt-1 hidden text-[11px] text-muted-foreground sm:block">{card.helper}</p></div>
+              <div><p className="text-xs text-muted-foreground">{card.label}</p><p className="mt-3 font-mono text-2xl font-semibold tabular-nums text-foreground">{result.isLoading ? "—" : (result.data?.[card.key] ?? 0)}</p><p className="mt-1 hidden text-[11px] text-muted-foreground sm:block">{card.helper}</p></div>
               <span className={`rounded-xl border border-border bg-background p-2 ${card.tone}`}><Icon className="h-4 w-4" /></span>
             </div>
           </article>

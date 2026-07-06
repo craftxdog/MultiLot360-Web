@@ -11,6 +11,23 @@ import type { SalesMatrixQuery, SalesMatrixStatus } from "../types/sales-matrix.
 import { buildSalesMatrixQueryString, parseSalesMatrixQuery } from "../utils/sales-matrix-query";
 
 const money = new Intl.NumberFormat("es-NI", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const dateTimeParts = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Managua",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
+function formatGeneratedAt(value: string) {
+  const parts = Object.fromEntries(
+    dateTimeParts.formatToParts(new Date(value)).map((part) => [part.type, part.value]),
+  );
+  return `${parts.day}/${parts.month}/${parts.year}, ${parts.hour}:${parts.minute}:${parts.second}`;
+}
 
 function Summary({ label, value, hint }: { label: string; value: string; hint: string }) {
   return <article className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 font-serif text-2xl text-foreground">{value}</p><p className="mt-1 text-[11px] text-muted-foreground">{hint}</p></article>;
@@ -37,7 +54,7 @@ export function SalesMatrixWorkspace() {
 
       {matrix.error ? <div role="alert" className="mt-4 rounded-xl border border-danger/25 bg-danger/10 p-4 text-sm text-danger">{matrix.error.message}</div> : null}
       <div className={`mt-5 overflow-x-auto transition-opacity ${matrix.isFetching ? "opacity-60" : ""}`}><div className="grid min-w-[820px] grid-cols-10 gap-2" aria-label="Cuadrícula de números 00 a 99">{data?.rows.flatMap((row) => row.cells).map((cell) => { const intensity = cell.amountMiles / maxAmount; return <article key={cell.number} className="relative min-h-24 overflow-hidden rounded-xl border border-border p-3" style={{ backgroundColor: cell.sold ? `color-mix(in oklab, var(--primary) ${Math.max(8, intensity * 30)}%, var(--card))` : undefined }}><div className="flex items-start justify-between"><span className="font-mono text-lg font-medium">{cell.number}</span>{cell.sold ? <Activity className="h-3.5 w-3.5 text-primary" /> : null}</div><p className="mt-3 truncate font-mono text-xs">{money.format(cell.amountMiles)} mil</p><p className="mt-1 text-[10px] text-muted-foreground">{cell.salesCount} ventas · {cell.itemsCount} jugadas</p></article>; })}</div></div>
-      <p className="mt-4 text-right text-[11px] text-muted-foreground">Generada {data?.generatedAt ? new Date(data.generatedAt).toLocaleString("es-NI") : "—"}</p>
+      <p className="mt-4 text-right text-[11px] text-muted-foreground">Generada {data?.generatedAt ? formatGeneratedAt(data.generatedAt) : "—"}</p>
     </section>
   </div>;
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "bynana-ui/input-otp";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -27,31 +26,20 @@ export function OtpCodeInput({
 
   return (
     <div data-focus-field={name} className={disabled ? "pointer-events-none opacity-50" : undefined}>
-      <input type="hidden" name={name} value={value} />
-      <InputOTP
+      <input
+        name={name}
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete="one-time-code"
         maxLength={OTP_LENGTH}
         value={value}
-        onChange={(nextValue) => setValue(normalizeOtp(nextValue))}
-        className="w-full"
+        onChange={(event) => setValue(normalizeOtp(event.target.value))}
+        disabled={disabled}
+        className={cn("h-14 w-full rounded-xl border bg-background px-4 text-center font-mono text-xl tracking-[0.7em] text-foreground outline-none transition focus:border-foreground/25", error ? "border-danger/45" : "border-input")}
         aria-label="Código de acceso de 6 dígitos"
         aria-invalid={error}
-      >
-        <InputOTPGroup className="grid w-full grid-cols-6 gap-2">
-          {Array.from({ length: OTP_LENGTH }, (_, index) => (
-            <InputOTPSlot
-              key={index}
-              index={index}
-              aria-label={`Dígito ${index + 1}`}
-              className={cn(
-                "h-12 w-full rounded-xl border bg-background text-base font-medium text-foreground",
-                error
-                  ? "border-danger/45"
-                  : "border-input focus-within:border-foreground/25",
-              )}
-            />
-          ))}
-        </InputOTPGroup>
-      </InputOTP>
+      />
       <div className="mt-2 flex items-center justify-between text-xs">
         <span className={error ? "text-danger" : "text-muted-foreground"}>Código de un solo uso</span>
         <span className="text-muted-foreground">{value.length}/6</span>

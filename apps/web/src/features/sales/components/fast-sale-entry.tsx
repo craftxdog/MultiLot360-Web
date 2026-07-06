@@ -23,12 +23,13 @@ export function FastSaleEntry({ disabled }: { disabled?: boolean }) {
   const [multiple, setMultiple] = React.useState(false);
   const [fixedAmount, setFixedAmount] = React.useState(true);
   const [number, setNumber] = React.useState("");
-  const [amount, setAmount] = React.useState(10);
+  const [amount, setAmount] = React.useState("10");
   const [capacityReached, setCapacityReached] = React.useState(false);
   const [amountFocusNumber, setAmountFocusNumber] = React.useState<string | null>(null);
   const numberRef = React.useRef<HTMLInputElement>(null);
   const amountRefs = React.useRef(new Map<string, HTMLInputElement>());
-  const validAmount = Number.isInteger(amount) && amount >= 1 && amount <= 999_999;
+  const parsedAmount = Number(amount);
+  const validAmount = Number.isFinite(parsedAmount) && parsedAmount >= 0.01 && parsedAmount <= 999_999 && Number.isInteger(parsedAmount * 100);
   const ticketFull = items.length >= 100;
   const canAddSingle = !disabled && !ticketFull && validAmount && /^\d{2}$/.test(number);
 
@@ -50,7 +51,7 @@ export function FastSaleEntry({ disabled }: { disabled?: boolean }) {
 
   function addSingle() {
     if (!canAddSingle) return;
-    addItem({ number, prizeMiles: amount });
+    addItem({ number, prizeMiles: parsedAmount });
     setNumber("");
     focusNumber();
   }
@@ -69,7 +70,7 @@ export function FastSaleEntry({ disabled }: { disabled?: boolean }) {
       if (fitted.accepted.length) {
         addItems(fitted.accepted.map((fixedNumber) => ({
           number: fixedNumber,
-          prizeMiles: fixedAmount ? amount : null,
+          prizeMiles: fixedAmount ? parsedAmount : null,
         })));
         if (!fixedAmount) setAmountFocusNumber(fitted.accepted[0] ?? null);
       }
@@ -121,7 +122,7 @@ export function FastSaleEntry({ disabled }: { disabled?: boolean }) {
 
       <div className="min-w-0">
         <Label htmlFor={multiple && !fixedAmount ? undefined : "saleAmount"} className="flex h-5 items-center">Premio por número</Label>
-        {multiple && !fixedAmount ? <div className="mt-2 flex h-14 items-center rounded-xl border border-dashed border-amber-500/30 bg-amber-500/6 px-4 text-xs leading-4 text-amber-800 dark:text-amber-200"><span>Se completa en la lista después de fijar cada número.</span></div> : <Input id="saleAmount" type="number" inputMode="numeric" min={1} max={999999} step={1} value={amount} disabled={disabled} onChange={(event) => setAmount(Number(event.target.value))} className="mt-2 h-14 font-mono text-lg" />}
+        {multiple && !fixedAmount ? <div className="mt-2 flex h-14 items-center rounded-xl border border-dashed border-amber-500/30 bg-amber-500/6 px-4 text-xs leading-4 text-amber-800 dark:text-amber-200"><span>Se completa en la lista después de fijar cada número.</span></div> : <Input id="saleAmount" type="number" inputMode="decimal" min={0.01} max={999999} step={0.01} value={amount} disabled={disabled} onChange={(event) => setAmount(event.target.value)} className="mt-2 h-14 font-mono text-lg" />}
       </div>
 
       <div className="min-w-0">
@@ -130,14 +131,14 @@ export function FastSaleEntry({ disabled }: { disabled?: boolean }) {
       </div>
     </form>
 
-    {(!multiple || fixedAmount) ? <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap" aria-label="Montos rápidos">{QUICK_AMOUNTS.map((value) => <button key={value} type="button" onClick={() => { setAmount(value); focusNumber(); }} disabled={disabled} className={`h-8 shrink-0 rounded-lg border px-3 font-mono text-xs transition disabled:opacity-50 ${amount === value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground hover:border-foreground/20 hover:text-foreground"}`}>{value} mil</button>)}</div> : null}
+    {(!multiple || fixedAmount) ? <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap" aria-label="Montos rápidos">{QUICK_AMOUNTS.map((value) => <button key={value} type="button" onClick={() => { setAmount(String(value)); focusNumber(); }} disabled={disabled} className={`h-8 shrink-0 rounded-lg border px-3 font-mono text-xs transition disabled:opacity-50 ${parsedAmount === value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground hover:border-foreground/20 hover:text-foreground"}`}>{value} mil</button>)}</div> : null}
 
     {items.length ? <div className="mt-3 rounded-xl border border-border bg-muted/20 p-3">
       <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-medium text-foreground">Números fijados</p><p className="mt-0.5 text-[10px] text-muted-foreground">Edita aquí el monto de cada jugada.</p></div><span className="rounded-full border border-border bg-background px-2.5 py-1 font-mono text-[10px] text-muted-foreground" aria-live="polite">{items.length}/100</span></div>
       <div className="mt-3 grid max-h-36 grid-cols-1 gap-2 overflow-y-auto pr-1 min-[420px]:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => <div key={item.number} className={`flex items-center gap-2 rounded-lg border bg-background p-1.5 ${item.prizeMiles === null ? "border-amber-500/40" : "border-border"}`}>
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary font-mono text-xs font-semibold text-primary-foreground">{item.number}</span>
-          <label className="min-w-0 flex-1"><span className="sr-only">Monto para {item.number}</span><Input ref={(node) => { if (node) amountRefs.current.set(item.number, node); else amountRefs.current.delete(item.number); }} type="number" inputMode="decimal" min={1} max={999999} step={1} placeholder="Monto" value={item.prizeMiles ?? ""} onChange={(event) => updateItem(item.number, event.target.value === "" ? null : Number(event.target.value))} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); focusNextPendingAmount(item.number); } }} className="h-9 px-2 font-mono text-xs" /></label>
+          <label className="min-w-0 flex-1"><span className="sr-only">Monto para {item.number}</span><Input ref={(node) => { if (node) amountRefs.current.set(item.number, node); else amountRefs.current.delete(item.number); }} type="number" inputMode="decimal" min={0.01} max={999999} step={0.01} placeholder="Monto" value={item.prizeMiles ?? ""} onChange={(event) => updateItem(item.number, event.target.value === "" ? null : Number(event.target.value))} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); focusNextPendingAmount(item.number); } }} className="h-9 px-2 font-mono text-xs" /></label>
           <button type="button" aria-label={`Quitar número ${item.number}`} onClick={() => { setCapacityReached(false); removeItem(item.number); }} className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition hover:bg-danger/10 hover:text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><X className="h-3.5 w-3.5" /></button>
         </div>)}
       </div>

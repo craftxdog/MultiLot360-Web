@@ -1,7 +1,7 @@
 "use client";
 
-import { BlurFade } from "bynana-ui/blur-fade";
 import { Boxes, Gauge, History, SlidersHorizontal } from "lucide-react";
+import { MotionReveal } from "@/components/ui/motion-reveal";
 import { useParameterOverview } from "../hooks/use-parameters";
 
 export function ParameterSummaryCards() {
@@ -39,7 +39,7 @@ export function ParameterSummaryCards() {
         const Icon = card.icon;
 
         return (
-          <BlurFade key={card.label} delay={index * 0.035}>
+          <MotionReveal key={card.label} delay={index * 0.035}>
             <article className="h-full rounded-2xl border border-border bg-card p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -56,7 +56,7 @@ export function ParameterSummaryCards() {
                 {card.detail}
               </p>
             </article>
-          </BlurFade>
+          </MotionReveal>
         );
       })}
     </div>

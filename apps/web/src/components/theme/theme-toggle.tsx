@@ -1,8 +1,8 @@
 "use client";
 
 import { Monitor, Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
+import { useTheme } from "./theme-provider";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -21,7 +21,7 @@ const items = [
     label: "Sistema",
     icon: Monitor,
   },
-];
+] as const;
 
 function subscribe() {
   return () => { };

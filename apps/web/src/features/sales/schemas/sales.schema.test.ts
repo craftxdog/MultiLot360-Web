@@ -13,6 +13,13 @@ describe("sales schemas", () => {
     assert.equal(voidSaleSchema.safeParse({ reason: "no" }).success, false);
   });
 
+  it("accepts API monetary precision and rejects a third decimal", () => {
+    const valid = createSaleSchema.safeParse({ shiftId: "6f66d473-f45e-4d7f-a9d7-3d024a8c0f01", items: [{ number: "02", prizeMiles: 0.5 }, { number: "15", prizeMiles: 1.4 }] });
+    const invalid = createSaleSchema.safeParse({ shiftId: "6f66d473-f45e-4d7f-a9d7-3d024a8c0f01", items: [{ number: "02", prizeMiles: 0.001 }] });
+    assert.equal(valid.success, true);
+    assert.equal(invalid.success, false);
+  });
+
   it("enforces the backend void policy bounds", () => {
     assert.equal(salesVoidPolicySchema.safeParse({ windowMinutes: 1 }).success, true);
     assert.equal(salesVoidPolicySchema.safeParse({ windowMinutes: 1441 }).success, false);

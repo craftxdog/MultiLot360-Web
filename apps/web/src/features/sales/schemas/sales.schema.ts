@@ -6,7 +6,10 @@ const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const saleIdSchema = z.uuid("Venta inválida.");
 export const saleItemSchema = z.object({
   number: numberSchema,
-  prizeMiles: z.number().int().min(1, "El monto mínimo es 1.").max(999_999, "El monto máximo es 999,999."),
+  prizeMiles: z.number()
+    .min(0.01, "El monto mínimo es 0.01.")
+    .max(999_999, "El monto máximo es 999,999.")
+    .refine((value) => Number.isInteger(value * 100), "Usa como máximo dos decimales."),
 });
 
 export const createSaleSchema = z.object({

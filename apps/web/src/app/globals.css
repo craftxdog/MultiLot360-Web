@@ -1,11 +1,10 @@
 @import "tailwindcss";
 @import "@svar-ui/react-grid/all.css";
-@source "../../node_modules/bynana-ui/dist";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --font-sans: "Hedvig Letters Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Hedvig Letters Serif", ui-serif, Georgia, serif;
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: ui-serif, Georgia, serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -89,7 +88,7 @@
   --wx-background: var(--card);
   --wx-background-alt: var(--muted);
   --wx-background-hover: var(--accent);
-  font-family: var(--font-hedvig-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .seller-grid .wx-cell,
@@ -125,16 +124,16 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-hedvig-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
   overflow-x: clip;
 }
 
 .font-sans {
-  font-family: var(--font-hedvig-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .font-serif {
-  font-family: var(--font-hedvig-serif), Georgia, serif;
+  font-family: var(--font-serif);
 }
 
 @media (prefers-reduced-motion: reduce) {
