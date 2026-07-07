@@ -31,6 +31,7 @@ export function EntityCombobox({
   disabled,
   className,
   emptyLabel = "Sin opciones disponibles",
+  onValueChange,
 }: {
   name: string;
   value?: string;
@@ -40,6 +41,7 @@ export function EntityCombobox({
   disabled?: boolean;
   className?: string;
   emptyLabel?: string;
+  onValueChange?: (value: string) => void;
 }) {
   return (
     <EntityComboboxInput
@@ -52,6 +54,7 @@ export function EntityCombobox({
       disabled={disabled}
       className={className}
       emptyLabel={emptyLabel}
+      onValueChange={onValueChange}
     />
   );
 }
@@ -65,6 +68,7 @@ function EntityComboboxInput({
   disabled,
   className,
   emptyLabel,
+  onValueChange,
 }: {
   name: string;
   value: string;
@@ -74,6 +78,7 @@ function EntityComboboxInput({
   disabled?: boolean;
   className?: string;
   emptyLabel: string;
+  onValueChange?: (value: string) => void;
 }) {
   const listboxId = React.useId();
   const triggerRef = React.useRef<HTMLButtonElement>(null);
@@ -115,7 +120,9 @@ function EntityComboboxInput({
   }, [open]);
 
   const choose = (option: EntityComboboxOption | null) => {
-    setCurrentValue(option?.value ?? "");
+    const nextValue = option?.value ?? "";
+    setCurrentValue(nextValue);
+    onValueChange?.(nextValue);
     setOpen(false);
     window.setTimeout(() => triggerRef.current?.focus(), 0);
   };
