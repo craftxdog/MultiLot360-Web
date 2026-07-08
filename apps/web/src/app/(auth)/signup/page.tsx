@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { AuthShell } from "@/features/auth/components/auth-shell";
-import { SignupForm } from "@/features/auth/components/signup-form";
+import { redirect } from "next/navigation";
+import { routes } from "@/config/routes";
 
 export default function SignupPage() {
-  return (
-    <AuthShell
-      title="Crea tu acceso"
-      description="Configura la cuenta administradora inicial. La API puede deshabilitar este registro después del arranque."
-    >
-      <SignupForm />
-    </AuthShell>
-  );
+  redirect(routes.login);
 }
 export const metadata: Metadata = {
-  title: "Crear acceso | MultiLot 360",
+  title: "Acceso administrado | MultiLot 360",
 };

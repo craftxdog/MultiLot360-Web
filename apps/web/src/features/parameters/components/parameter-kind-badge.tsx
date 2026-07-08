@@ -4,7 +4,7 @@ import { getParameterValueKind } from "../utils/parameter-formatters";
 const kinds = {
   boolean: { label: "Booleano", icon: ToggleLeft },
   number: { label: "Número", icon: Hash },
-  json: { label: "JSON", icon: Braces },
+  json: { label: "Avanzado", icon: Braces },
   text: { label: "Texto", icon: Type },
 };
 

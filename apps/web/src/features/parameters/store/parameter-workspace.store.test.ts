@@ -7,6 +7,7 @@ describe("system parameter workspace store", () => {
     useParameterWorkspaceStore.setState({
       editorOpen: false,
       selectedParameter: null,
+      draftParameter: null,
     });
   });
 
@@ -24,6 +25,21 @@ describe("system parameter workspace store", () => {
     );
     useParameterWorkspaceStore.getState().closeEditor();
     assert.equal(useParameterWorkspaceStore.getState().selectedParameter, null);
+    assert.equal(useParameterWorkspaceStore.getState().draftParameter, null);
     assert.equal(useParameterWorkspaceStore.getState().editorOpen, false);
+  });
+
+  it("opens the editor with a guided draft preset", () => {
+    useParameterWorkspaceStore.getState().openCreate({
+      key: "sales.allow_decimal_amounts",
+      value: "true",
+    });
+
+    assert.equal(useParameterWorkspaceStore.getState().editorOpen, true);
+    assert.equal(useParameterWorkspaceStore.getState().selectedParameter, null);
+    assert.equal(
+      useParameterWorkspaceStore.getState().draftParameter?.key,
+      "sales.allow_decimal_amounts",
+    );
   });
 });

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AuthShell } from "@/features/auth/components/auth-shell";
+import { AuthDesktopInstallCard } from "@/features/auth/components/auth-desktop-install-card";
 import { LoginForm } from "@/features/auth/components/login-form";
 
 type LoginPageProps = {
@@ -17,6 +18,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       description="Accede al centro operativo con tu cuenta o activa una invitación de vendedor."
     >
       <LoginForm next={params?.next} />
+      <AuthDesktopInstallCard />
     </AuthShell>
   );
 }

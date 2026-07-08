@@ -11,6 +11,7 @@ import { useParameterWorkspaceStore } from "../store/parameter-workspace.store";
 import { parseParametersQuery } from "../utils/parameter-query";
 import { ParameterEditorDrawer } from "./parameter-editor-drawer";
 import { ParameterList } from "./parameter-list";
+import { ParameterPresets } from "./parameter-presets";
 import { ParameterSummaryCards } from "./parameter-summary-cards";
 import { ParameterToolbar } from "./parameter-toolbar";
 
@@ -54,12 +55,13 @@ export function ParametersWorkspace() {
             Parámetros del sistema
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Administra las claves operativas que modifican el comportamiento de
-            MultiLot sin desplegar una nueva versión.
+            Ajusta reglas operativas sin desplegar una nueva versión. Cada
+            parámetro tiene una clave, un valor y una explicación visual para
+            que sepas qué estás cambiando antes de guardarlo.
           </p>
         </div>
         {canUpdate ? (
-          <Button className="h-9 gap-2 rounded-lg px-3" onClick={openCreate}>
+          <Button className="h-9 gap-2 rounded-lg px-3" onClick={() => openCreate()}>
             <Plus className="h-4 w-4" />
             Nuevo parámetro
           </Button>
@@ -69,6 +71,8 @@ export function ParametersWorkspace() {
       <section aria-label="Resumen de parámetros" className="mt-6">
         <ParameterSummaryCards />
       </section>
+
+      <ParameterPresets canUpdate={canUpdate} />
 
       <aside className="mt-6 flex flex-col gap-3 rounded-2xl border border-primary/12 bg-primary/4 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3">
@@ -80,8 +84,8 @@ export function ParametersWorkspace() {
               Cambios publicados al instante
             </p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              La API conserva la clave como fuente de verdad y notifica la
-              actualización a los módulos autorizados.
+              Cuando guardas un valor, queda activo en la API y los módulos
+              autorizados lo consumen desde los endpoints protegidos.
             </p>
           </div>
         </div>

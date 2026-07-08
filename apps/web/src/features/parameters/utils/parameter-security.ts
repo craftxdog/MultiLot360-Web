@@ -5,7 +5,18 @@ export function isTrustedParameterOrigin(
   if (!origin) return false;
 
   try {
-    return new URL(requestUrl).origin === new URL(origin).origin;
+    const request = new URL(requestUrl);
+    const source = new URL(origin);
+
+    if (request.origin === source.origin) return true;
+
+    const loopbackHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+    return (
+      request.protocol === source.protocol &&
+      request.port === source.port &&
+      loopbackHosts.has(request.hostname) &&
+      loopbackHosts.has(source.hostname)
+    );
   } catch {
     return false;
   }

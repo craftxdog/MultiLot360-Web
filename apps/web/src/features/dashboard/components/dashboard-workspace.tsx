@@ -12,7 +12,6 @@ import { resultsOptions } from "@/features/operations/queries/operations.queries
 import { salesOverviewQueryOptions } from "@/features/sales/queries/sales.queries";
 import { canAccessItem, filterItemsByPermissions } from "@/lib/auth/permissions";
 import { DashboardCharts } from "./dashboard-charts";
-import { DesktopInstallCard } from "./desktop-install-card";
 
 function MetricCard({ label, value, detail, icon: Icon, loading }: { label: string; value: string; detail: string; icon: typeof Gauge; loading?: boolean }) {
   return <article className="rounded-2xl border border-border bg-card p-5"><div className="flex items-center justify-between gap-3"><p className="text-sm text-muted-foreground">{label}</p><Icon className="h-4 w-4 text-muted-foreground" /></div><p className={`mt-5 text-3xl font-semibold tracking-tighter ${loading ? "animate-pulse text-muted-foreground" : "text-card-foreground"}`}>{loading ? "—" : value}</p><p className="mt-4 text-sm text-muted-foreground">{detail}</p></article>;
@@ -60,8 +59,6 @@ export function DashboardWorkspace() {
     </section>
 
     {canReadSales ? <DashboardCharts admin={isAdmin} sellerId={user?.seller?.id} /> : null}
-
-    <DesktopInstallCard />
 
     {actions.length ? <section className="rounded-2xl border border-border bg-card p-5"><h2 className="text-sm font-medium">Acciones rápidas</h2><div className="mt-4 flex flex-wrap gap-2">{actions.map((action) => <Link key={action.href} href={action.href} className="inline-flex h-10 items-center gap-2 rounded-xl border border-border px-4 text-sm transition hover:bg-accent">{action.title}<ArrowRight className="h-3.5 w-3.5" /></Link>)}</div></section> : null}
 

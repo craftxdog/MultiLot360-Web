@@ -141,16 +141,6 @@ export function LoginForm({ next }: LoginFormProps) {
           >
             {pending ? "Verificando acceso..." : "Entrar a MultiLot"}
           </Button>
-
-          <p className="pt-1 text-center text-xs text-muted-foreground">
-            ¿Configuras la primera cuenta?{" "}
-            <Link
-              href={routes.signup}
-              className="text-foreground underline decoration-border underline-offset-4 transition hover:opacity-70"
-            >
-              Crear acceso administrador
-            </Link>
-          </p>
         </form>
       )}
     </div>

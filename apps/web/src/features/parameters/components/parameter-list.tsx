@@ -7,6 +7,7 @@ import {
   formatParameterDate,
   formatParameterLabel,
   formatParameterNamespace,
+  formatParameterValuePreview,
 } from "../utils/parameter-formatters";
 import { useParameterWorkspaceStore } from "../store/parameter-workspace.store";
 import { ParameterKindBadge } from "./parameter-kind-badge";
@@ -32,7 +33,7 @@ export function ParameterList({
           Ajusta el filtro o registra una nueva clave técnica para este entorno.
         </p>
         {canUpdate ? (
-          <Button className="mt-5 gap-2" onClick={openCreate}>
+          <Button className="mt-5 gap-2" onClick={() => openCreate()}>
             <Plus className="h-4 w-4" />
             Nuevo parámetro
           </Button>
@@ -71,12 +72,14 @@ export function ParameterList({
               </code>
             </div>
 
-            <code
-              className="block min-w-0 truncate rounded-lg border border-border bg-card px-3 py-2 text-xs text-foreground"
-              title={parameter.value}
-            >
-              {parameter.value || "(vacío)"}
-            </code>
+            <div className="block min-w-0 rounded-lg border border-border bg-card px-3 py-2">
+              <p className="truncate text-xs text-foreground">
+                {formatParameterValuePreview(parameter.value)}
+              </p>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                Valor activo
+              </p>
+            </div>
 
             <div>
               <ParameterKindBadge value={parameter.value} />

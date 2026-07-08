@@ -25,5 +25,19 @@ describe("system parameter mutation origin", () => {
       ),
       false,
     );
+    assert.equal(
+      isTrustedParameterOrigin(
+        "http://localhost:8080/api/parameters/sales.value",
+        "http://127.0.0.1:8080",
+      ),
+      true,
+    );
+    assert.equal(
+      isTrustedParameterOrigin(
+        "http://localhost:8080/api/parameters/sales.value",
+        "http://127.0.0.1:9090",
+      ),
+      false,
+    );
   });
 });

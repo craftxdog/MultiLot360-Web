@@ -36,6 +36,24 @@ export function getParameterValueKind(value: string): ParameterValueKind {
   return "text";
 }
 
+export function formatParameterValuePreview(value: string) {
+  const normalized = value.trim();
+  const kind = getParameterValueKind(normalized);
+
+  if (!normalized) return "Sin valor";
+  if (kind === "boolean") return normalized === "true" ? "Activado" : "Desactivado";
+  if (kind === "number") return new Intl.NumberFormat("es-NI").format(Number(normalized));
+
+  if (kind === "json") {
+    const parsed = JSON.parse(normalized) as unknown;
+
+    if (Array.isArray(parsed)) return `Lista avanzada · ${parsed.length} elementos`;
+    if (parsed && typeof parsed === "object") return `Configuración avanzada · ${Object.keys(parsed).length} campos`;
+  }
+
+  return normalized.length > 80 ? `${normalized.slice(0, 77)}…` : normalized;
+}
+
 export function formatParameterDate(value: string) {
   return new Intl.DateTimeFormat("es-NI", {
     dateStyle: "medium",

@@ -119,6 +119,42 @@
   background-color: var(--accent);
 }
 
+.notification-row {
+  isolation: isolate;
+}
+
+.notification-row::before {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 2px;
+  content: "";
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.notification-row:hover::before,
+.notification-row:focus-visible::before {
+  opacity: 1;
+}
+
+.notification-dot {
+  animation: notification-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes notification-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.24);
+    opacity: 0.65;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
