@@ -55,24 +55,35 @@ export function ParametersWorkspace() {
             Parámetros del sistema
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Ajusta reglas operativas sin desplegar una nueva versión. Cada
-            parámetro tiene una clave, un valor y una explicación visual para
-            que sepas qué estás cambiando antes de guardarlo.
+            Cambia reglas comunes con controles guiados y lenguaje operativo.
+            Si soporte necesita una clave exacta, el catálogo avanzado queda
+            abajo con todos los detalles técnicos.
           </p>
         </div>
         {canUpdate ? (
-          <Button className="h-9 gap-2 rounded-lg px-3" onClick={() => openCreate()}>
+          <Button
+            className="h-10 w-full gap-2 rounded-xl px-4 sm:w-auto"
+            onClick={() => openCreate()}
+          >
             <Plus className="h-4 w-4" />
-            Nuevo parámetro
+            Nuevo avanzado
           </Button>
         ) : null}
       </header>
 
-      <section aria-label="Resumen de parámetros" className="mt-6">
+      <ParameterPresets canUpdate={canUpdate} parameters={parameters} />
+
+      <section aria-label="Estado de configuración" className="mt-6">
+        <div className="mb-3">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            Estado de configuración
+          </p>
+          <h2 className="mt-1 text-lg font-medium tracking-[-0.03em] text-foreground">
+            Resumen rápido
+          </h2>
+        </div>
         <ParameterSummaryCards />
       </section>
-
-      <ParameterPresets canUpdate={canUpdate} />
 
       <aside className="mt-6 flex flex-col gap-3 rounded-2xl border border-primary/12 bg-primary/4 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3">
@@ -101,10 +112,11 @@ export function ParametersWorkspace() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-medium text-foreground">
-              Catálogo operativo
+              Catálogo avanzado
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Busca por prefijo, revisa el tipo inferido y controla la fecha del último cambio.
+              Úsalo cuando necesites revisar claves, tipos inferidos o fechas
+              de cambio. Para operación diaria, usa el panel guiado de arriba.
             </p>
           </div>
           <button
