@@ -37,3 +37,9 @@ El repositorio usa Gitflow con `develop` como rama de integración y `master`
 como rama publicable. La automatización valida cada push/PR y, al publicar en
 `master`, construye una imagen standalone de Next.js en GitHub Container
 Registry. Consulta [docs/gitflow-and-delivery.md](docs/gitflow-and-delivery.md).
+
+## Desktop
+
+`apps/desktop` prepara instaladores macOS/Windows con Tauri 2. El workflow
+manual `desktop` genera artefactos descargables desde `master`. Consulta
+[docs/desktop-installers.md](docs/desktop-installers.md).

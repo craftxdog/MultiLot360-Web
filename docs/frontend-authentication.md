@@ -80,8 +80,12 @@ La app web corre en `http://localhost:8080` y espera la API configurada en
 
 ## Base para desktop
 
-El repositorio ya es un workspace y el cliente HTTP vive en `packages/` para
-que un futuro `apps/desktop` (Tauri 2, como Midday) reutilice contratos y manejo
-de errores. El almacenamiento de tokens del cliente nativo debe implementarse
-con el almacén seguro de Tauri; no debe copiar las cookies web ni usar
-`localStorage`.
+El repositorio ya incluye `apps/desktop` con Tauri 2. La primera versión desktop
+carga la URL publicada de la web para conservar el mismo BFF, cookies
+HTTP-only, permisos y validaciones de sesión. El login muestra enlaces a
+instaladores nativos cuando existen las variables
+`NEXT_PUBLIC_DESKTOP_MAC_URL` y `NEXT_PUBLIC_DESKTOP_WINDOWS_URL`.
+
+Si en el futuro se implementan flujos nativos que consuman la API directamente,
+los tokens deben guardarse en el almacén seguro de Tauri; no deben copiar las
+cookies web ni usar `localStorage`.

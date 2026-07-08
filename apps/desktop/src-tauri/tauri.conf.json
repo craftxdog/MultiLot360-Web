@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "MultiLot 360",
+  "version": "0.1.0",
+  "identifier": "com.multilot360.desktop",
+  "build": {
+    "frontendDist": "../src",
+    "devUrl": "http://localhost:8080",
+    "beforeDevCommand": "bun --cwd ../.. run dev:web",
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "category": "Business",
+    "copyright": "Copyright © 2026 MultiLot 360",
+    "publisher": "MultiLot 360",
+    "shortDescription": "Centro operativo de MultiLot 360",
+    "longDescription": "Aplicación de escritorio para acceder a la operación protegida de MultiLot 360.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "targets": ["dmg", "nsis"],
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "signingIdentity": "-"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false,
+        "languages": ["Spanish"]
+      }
+    }
+  }
+}

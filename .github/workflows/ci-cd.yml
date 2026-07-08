@@ -5,49 +5,156 @@ on:
     branches: [develop, master]
   push:
     branches: [develop, master]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Qué ejecutar manualmente"
+        required: true
+        default: verify
+        type: choice
+        options:
+          - verify
+          - preview
+          - production
+          - desktop
 
 concurrency:
-  group: web-${{ github.ref }}
+  group: web-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
   contents: read
-  packages: write
+
+env:
+  BUN_VERSION: 1.3.11
+  VERCEL_CLI_VERSION: 54.21.1
 
 jobs:
-  verify:
+  policy:
+    name: Policy and branch rules
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          bun-version: 1.3.11
-      - run: bun install --frozen-lockfile
-      - run: bun run lint:web
-      - run: bun run typecheck:web
-      - run: bun run test:web
-      - run: bun run build:web
+          fetch-depth: 0
 
-  publish-image:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      - name: Validate branch policy
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            case "${{ github.base_ref }}" in
+              develop|master) ;;
+              *)
+                echo "::error::Pull requests only target develop or master."
+                exit 1
+                ;;
+            esac
+            exit 0
+          fi
+
+          case "${GITHUB_REF_NAME}" in
+            develop|master) ;;
+            *)
+              echo "::error::Only develop and master are release-controlled branches."
+              exit 1
+              ;;
+          esac
+
+      - name: Validate manual production dispatch
+        if: github.event_name == 'workflow_dispatch' && (inputs.target == 'production' || inputs.target == 'desktop')
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" != "master" ]; then
+            echo "::error::Production and desktop release jobs must run from master."
+            exit 1
+          fi
+
+      - name: Require master and develop sync before production publication
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          set -euo pipefail
+          git fetch origin develop master
+          DEVELOP_SHA="$(git rev-parse origin/develop)"
+          MASTER_SHA="$(git rev-parse origin/master)"
+
+          echo "origin/develop=${DEVELOP_SHA}"
+          echo "origin/master=${MASTER_SHA}"
+
+          if [ "${DEVELOP_SHA}" != "${MASTER_SHA}" ]; then
+            echo "::error::master and develop must point to the same commit before publishing production artifacts."
+            exit 1
+          fi
+
+  verify:
+    name: Lint, types, tests and build
+    needs: policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint web app
+        run: bun run lint:web
+
+      - name: Typecheck web app
+        run: bun run typecheck:web
+
+      - name: Run web tests
+        run: bun run test:web
+
+      - name: Build web app
+        run: bun run build:web
+        env:
+          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'http://localhost:8080' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
+
+  docker-image:
+    name: Publish GHCR image
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'production')
     needs: verify
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/metadata-action@v5
+
+      - name: Generate image metadata
+        uses: docker/metadata-action@v5
         id: meta
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=latest
-            type=sha
-      - uses: docker/build-push-action@v6
+            type=sha,prefix=sha-
+
+      - name: Build and publish image
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -58,3 +165,189 @@ jobs:
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  vercel-preview:
+    name: Deploy Vercel preview
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'preview')
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: preview
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      HAS_VERCEL_CONFIG: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
+    steps:
+      - name: Skip when Vercel secrets are missing
+        if: env.HAS_VERCEL_CONFIG != 'true'
+        run: |
+          echo "::notice::Vercel preview deploy skipped. Configure VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID to enable it."
+
+      - name: Checkout repository
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pinned Vercel CLI
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        run: npm install --global vercel@${{ env.VERCEL_CLI_VERSION }}
+
+      - name: Pull preview environment
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        run: vercel pull --yes --environment=preview --token="${VERCEL_TOKEN}"
+
+      - name: Build preview artifact
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        run: vercel build --token="${VERCEL_TOKEN}"
+
+      - name: Deploy preview artifact
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        run: |
+          set -euo pipefail
+          DEPLOYMENT_URL="$(vercel deploy --prebuilt --target=preview --token="${VERCEL_TOKEN}")"
+          echo "Preview deployment: ${DEPLOYMENT_URL}"
+          echo "### Preview deployment" >> "${GITHUB_STEP_SUMMARY}"
+          echo "${DEPLOYMENT_URL}" >> "${GITHUB_STEP_SUMMARY}"
+
+  vercel-production:
+    name: Deploy Vercel production
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'workflow_dispatch' && inputs.target == 'production')
+    needs: [verify, docker-image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      HAS_VERCEL_CONFIG: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
+    steps:
+      - name: Skip when Vercel secrets are missing
+        if: env.HAS_VERCEL_CONFIG != 'true'
+        run: |
+          echo "::notice::Vercel production deploy skipped. Configure VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID to enable it."
+
+      - name: Checkout repository
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pinned Vercel CLI
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        run: npm install --global vercel@${{ env.VERCEL_CLI_VERSION }}
+
+      - name: Pull production environment
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        run: vercel pull --yes --environment=production --token="${VERCEL_TOKEN}"
+
+      - name: Build production artifact
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        run: vercel build --prod --token="${VERCEL_TOKEN}"
+
+      - name: Deploy production artifact
+        if: env.HAS_VERCEL_CONFIG == 'true'
+        run: |
+          set -euo pipefail
+          DEPLOYMENT_URL="$(vercel deploy --prebuilt --prod --token="${VERCEL_TOKEN}")"
+          echo "Production deployment: ${DEPLOYMENT_URL}"
+          echo "### Production deployment" >> "${GITHUB_STEP_SUMMARY}"
+          echo "${DEPLOYMENT_URL}" >> "${GITHUB_STEP_SUMMARY}"
+
+  desktop-installers:
+    name: Build desktop installers
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'desktop'
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            artifact: macos-arm64
+            rust-target: aarch64-apple-darwin
+            tauri-args: --ci --target aarch64-apple-darwin --bundles dmg
+          - os: macos-13
+            artifact: macos-x64
+            rust-target: x86_64-apple-darwin
+            tauri-args: --ci --target x86_64-apple-darwin --bundles dmg
+          - os: windows-latest
+            artifact: windows-x64
+            rust-target: ""
+            tauri-args: --ci --bundles nsis
+    env:
+      MULTILOT_DESKTOP_URL: ${{ vars.MULTILOT_DESKTOP_URL || vars.NEXT_PUBLIC_APP_URL }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate desktop target URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${MULTILOT_DESKTOP_URL}" ]; then
+            echo "::error::Configure repository variable MULTILOT_DESKTOP_URL or NEXT_PUBLIC_APP_URL before building desktop installers."
+            exit 1
+          fi
+
+          case "${MULTILOT_DESKTOP_URL}" in
+            http://*|https://*) ;;
+            *)
+              echo "::error::MULTILOT_DESKTOP_URL must start with http:// or https://."
+              exit 1
+              ;;
+          esac
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Rust target
+        if: matrix.rust-target != ''
+        run: rustup target add ${{ matrix.rust-target }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri -> target
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${{ matrix.tauri-args }}" ]; then
+            bun --cwd apps/desktop run build -- ${{ matrix.tauri-args }}
+          else
+            bun --cwd apps/desktop run build
+          fi
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: multilot-360-${{ matrix.artifact }}
+          path: apps/desktop/src-tauri/target/**/release/bundle/**/*
+          if-no-files-found: error
