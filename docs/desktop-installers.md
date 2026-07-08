@@ -23,13 +23,18 @@ apps/desktop/
     src/lib.rs                  # abre MULTILOT_DESKTOP_URL
 ```
 
-## Variable obligatoria
+## URL de conexión
 
-Configura en GitHub Actions > Variables:
+La app puede construirse de dos formas:
 
-- `MULTILOT_DESKTOP_URL`: URL pública que abrirá la app desktop.
+- con URL pública embebida, usando el input manual `desktop_url` o la variable
+  de repositorio `MULTILOT_DESKTOP_URL`;
+- sin URL embebida, mostrando una pantalla de conexión en el primer inicio para
+  que el usuario escriba la URL pública de su MultiLot 360.
 
-Si no existe, el workflow acepta también `NEXT_PUBLIC_APP_URL`.
+Si `desktop_url` y `MULTILOT_DESKTOP_URL` están vacías, el workflow acepta
+`NEXT_PUBLIC_APP_URL`. Si todo está vacío, el release sigue siendo válido y
+usa la pantalla de conexión local.
 
 La URL debe comenzar con `https://` o `http://`. Para producción usa `https://`.
 
@@ -38,23 +43,41 @@ La URL debe comenzar con `https://` o `http://`. Para producción usa `https://`
 1. Entra a **Actions**.
 2. Ejecuta manualmente **Web CI/CD**.
 3. Selecciona `target = desktop`.
-4. Ejecuta desde la rama `master`.
+4. Opcionalmente indica:
+   - `desktop_url`: URL pública que abrirá la app al iniciar;
+   - `release_tag`: por defecto `desktop-v0.1.0`;
+   - `release_name`: por defecto `MultiLot 360 Desktop v0.1.0`.
+5. Ejecuta desde la rama `master`.
 
-El workflow genera artefactos descargables:
+El workflow genera artefactos por plataforma y luego publica/actualiza un
+GitHub Release con nombres estables:
 
-- `multilot-360-macos-arm64`
-- `multilot-360-macos-x64`
-- `multilot-360-windows-x64`
+- `MultiLot-360-macOS-arm64.dmg`
+- `MultiLot-360-macOS-x64.dmg`
+- `MultiLot-360-Windows-x64-Setup.exe`
 
 ## Mostrar enlaces en el login
 
-Cuando ya tengas URLs públicas de release, configura:
+El login apunta por defecto a:
 
+```text
+https://github.com/craftxdog/MultiLot360-Web/releases/latest/download
+```
+
+Puedes cambiar la base con:
+
+- `NEXT_PUBLIC_DESKTOP_RELEASE_URL`
+
+O sobrescribir un instalador específico con:
+
+- `NEXT_PUBLIC_DESKTOP_MAC_ARM_URL`
+- `NEXT_PUBLIC_DESKTOP_MAC_INTEL_URL`
+- `NEXT_PUBLIC_DESKTOP_MAC_X64_URL`
 - `NEXT_PUBLIC_DESKTOP_MAC_URL`
 - `NEXT_PUBLIC_DESKTOP_WINDOWS_URL`
 
-La pantalla de login mostrará botones de descarga para macOS/Windows. Si esas
-variables no están configuradas, mantiene la instalación web/PWA como respaldo.
+La pantalla de login siempre muestra los instaladores macOS/Windows y mantiene
+la instalación web/PWA como respaldo para navegadores compatibles.
 
 ## Desarrollo local
 

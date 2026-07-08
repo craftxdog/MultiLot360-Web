@@ -82,9 +82,19 @@ La app web corre en `http://localhost:8080` y espera la API configurada en
 
 El repositorio ya incluye `apps/desktop` con Tauri 2. La primera versión desktop
 carga la URL publicada de la web para conservar el mismo BFF, cookies
-HTTP-only, permisos y validaciones de sesión. El login muestra enlaces a
-instaladores nativos cuando existen las variables
-`NEXT_PUBLIC_DESKTOP_MAC_URL` y `NEXT_PUBLIC_DESKTOP_WINDOWS_URL`.
+HTTP-only, permisos y validaciones de sesión. El login muestra el bloque
+“MultiLot 360 para escritorio” con el icono oficial y enlaces estables hacia el
+último GitHub Release:
+
+- `MultiLot-360-macOS-arm64.dmg`
+- `MultiLot-360-macOS-x64.dmg`
+- `MultiLot-360-Windows-x64-Setup.exe`
+
+Si necesitas otro origen de descarga, configura
+`NEXT_PUBLIC_DESKTOP_RELEASE_URL` o sobrescribe un instalador específico con
+`NEXT_PUBLIC_DESKTOP_MAC_ARM_URL`, `NEXT_PUBLIC_DESKTOP_MAC_INTEL_URL`,
+`NEXT_PUBLIC_DESKTOP_MAC_X64_URL`, `NEXT_PUBLIC_DESKTOP_MAC_URL` o
+`NEXT_PUBLIC_DESKTOP_WINDOWS_URL`.
 
 Si en el futuro se implementan flujos nativos que consuman la API directamente,
 los tokens deben guardarse en el almacén seguro de Tauri; no deben copiar las

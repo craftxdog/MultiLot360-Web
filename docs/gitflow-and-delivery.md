@@ -28,7 +28,8 @@ El workflow también deja preparado despliegue Vercel opcional:
 - `develop` publica preview cuando existen los secrets de Vercel.
 - `master` publica producción cuando existen los secrets de Vercel.
 - si faltan los secrets, el despliegue se omite sin romper las validaciones.
-- la ejecución manual `desktop` genera instaladores macOS/Windows con Tauri 2.
+- la ejecución manual `desktop` genera instaladores macOS/Windows con Tauri 2 y
+  publica/actualiza el GitHub Release de escritorio.
 
 Más detalle: [`docs/ci-cd.md`](./ci-cd.md).
 

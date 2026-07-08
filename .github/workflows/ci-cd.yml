@@ -17,6 +17,20 @@ on:
           - preview
           - production
           - desktop
+      desktop_url:
+        description: "URL pública que abrirá la app desktop. Si queda vacía, el instalador pedirá la URL al iniciar."
+        required: false
+        type: string
+      release_tag:
+        description: "Tag del release desktop"
+        required: false
+        default: desktop-v0.1.0
+        type: string
+      release_name:
+        description: "Nombre visible del release desktop"
+        required: false
+        default: MultiLot 360 Desktop v0.1.0
+        type: string
 
 concurrency:
   group: web-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
@@ -293,7 +307,7 @@ jobs:
             rust-target: ""
             tauri-args: --ci --bundles nsis
     env:
-      MULTILOT_DESKTOP_URL: ${{ vars.MULTILOT_DESKTOP_URL || vars.NEXT_PUBLIC_APP_URL }}
+      MULTILOT_DESKTOP_URL: ${{ inputs.desktop_url || vars.MULTILOT_DESKTOP_URL || vars.NEXT_PUBLIC_APP_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -303,8 +317,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${MULTILOT_DESKTOP_URL}" ]; then
-            echo "::error::Configure repository variable MULTILOT_DESKTOP_URL or NEXT_PUBLIC_APP_URL before building desktop installers."
-            exit 1
+            echo "::notice::MULTILOT_DESKTOP_URL is empty. The desktop app will show the connection screen on first launch."
+            exit 0
           fi
 
           case "${MULTILOT_DESKTOP_URL}" in
@@ -351,3 +365,88 @@ jobs:
           name: multilot-360-${{ matrix.artifact }}
           path: apps/desktop/src-tauri/target/**/release/bundle/**/*
           if-no-files-found: error
+
+  desktop-release:
+    name: Publish desktop release
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'desktop'
+    needs: desktop-installers
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_TAG: ${{ inputs.release_tag || 'desktop-v0.1.0' }}
+      RELEASE_NAME: ${{ inputs.release_name || 'MultiLot 360 Desktop v0.1.0' }}
+      MULTILOT_DESKTOP_URL: ${{ inputs.desktop_url || vars.MULTILOT_DESKTOP_URL || vars.NEXT_PUBLIC_APP_URL }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets/raw
+
+      - name: Normalize release asset names
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p release-assets
+
+          MAC_ARM="$(find release-assets/raw/multilot-360-macos-arm64 -type f -name '*.dmg' | head -n 1)"
+          MAC_X64="$(find release-assets/raw/multilot-360-macos-x64 -type f -name '*.dmg' | head -n 1)"
+          WIN_X64="$(find release-assets/raw/multilot-360-windows-x64 -type f -name '*.exe' | head -n 1)"
+
+          if [ -z "${MAC_ARM}" ] || [ -z "${MAC_X64}" ] || [ -z "${WIN_X64}" ]; then
+            echo "::error::Missing one or more desktop installer artifacts."
+            find release-assets/raw -type f | sort
+            exit 1
+          fi
+
+          cp "${MAC_ARM}" release-assets/MultiLot-360-macOS-arm64.dmg
+          cp "${MAC_X64}" release-assets/MultiLot-360-macOS-x64.dmg
+          cp "${WIN_X64}" release-assets/MultiLot-360-Windows-x64-Setup.exe
+
+          ls -lh release-assets/MultiLot-360-*
+
+      - name: Create or update GitHub Release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          RELEASE_TAG="${RELEASE_TAG:-desktop-v0.1.0}"
+          RELEASE_NAME="${RELEASE_NAME:-MultiLot 360 Desktop v0.1.0}"
+
+          cat > release-body.md <<'EOF'
+          MultiLot 360 para escritorio.
+
+          Descargas:
+          - macOS Apple Silicon: MultiLot-360-macOS-arm64.dmg
+          - macOS Intel: MultiLot-360-macOS-x64.dmg
+          - Windows x64: MultiLot-360-Windows-x64-Setup.exe
+
+          Si el instalador fue generado sin URL pública embebida, la app mostrará una pantalla de conexión en el primer inicio para indicar la URL del sistema MultiLot 360.
+          EOF
+
+          if gh release view "${RELEASE_TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release edit "${RELEASE_TAG}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --target "${GITHUB_SHA}" \
+              --title "${RELEASE_NAME}" \
+              --notes-file release-body.md
+          else
+            gh release create "${RELEASE_TAG}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --target "${GITHUB_SHA}" \
+              --title "${RELEASE_NAME}" \
+              --notes-file release-body.md
+          fi
+
+          gh release upload "${RELEASE_TAG}" release-assets/MultiLot-360-* \
+            --repo "${GITHUB_REPOSITORY}" \
+            --clobber
+
+          echo "### Desktop release" >> "${GITHUB_STEP_SUMMARY}"
+          echo "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${RELEASE_TAG}" >> "${GITHUB_STEP_SUMMARY}"
