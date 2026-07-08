@@ -41,5 +41,6 @@ Registry. Consulta [docs/gitflow-and-delivery.md](docs/gitflow-and-delivery.md).
 ## Desktop
 
 `apps/desktop` prepara instaladores macOS/Windows con Tauri 2. El workflow
-manual `desktop` genera artefactos descargables desde `master`. Consulta
+manual `desktop` genera instaladores desde `master` y los publica como GitHub
+Release para que el login pueda descargarlos con enlaces estables. Consulta
 [docs/desktop-installers.md](docs/desktop-installers.md).

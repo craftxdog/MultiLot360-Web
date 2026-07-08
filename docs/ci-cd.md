@@ -69,7 +69,7 @@ Desde GitHub Actions puedes ejecutar `Web CI/CD` manualmente con:
 - `verify`: sólo validaciones.
 - `preview`: validaciones + despliegue preview.
 - `production`: validaciones + imagen + despliegue producción. Debe correr desde `master`.
-- `desktop`: validaciones + instaladores macOS/Windows como artefactos. Debe correr desde `master`.
+- `desktop`: validaciones + instaladores macOS/Windows + publicación en GitHub Releases. Debe correr desde `master`.
 
 ## Instaladores desktop
 
@@ -79,9 +79,17 @@ El job `desktop-installers` usa Tauri 2 y genera:
 - macOS Intel;
 - Windows x64.
 
-Variable requerida:
+Luego `desktop-release` normaliza los nombres y publica/actualiza un release con:
 
-- `MULTILOT_DESKTOP_URL`, o en su defecto `NEXT_PUBLIC_APP_URL`.
+- `MultiLot-360-macOS-arm64.dmg`
+- `MultiLot-360-macOS-x64.dmg`
+- `MultiLot-360-Windows-x64-Setup.exe`
+
+URL de conexión:
+
+- input manual `desktop_url`, o variable `MULTILOT_DESKTOP_URL`, o
+  `NEXT_PUBLIC_APP_URL`;
+- si todas están vacías, la app muestra una pantalla de conexión al iniciar.
 
 Más detalle: [`docs/desktop-installers.md`](./desktop-installers.md).
 
