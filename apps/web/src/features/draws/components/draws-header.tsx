@@ -1,7 +1,8 @@
 "use client";
 
-import { CalendarPlus, Plus, Radio } from "lucide-react";
+import { CalendarPlus, Plus, Radio, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useDrawShiftMutations } from "../hooks/use-draw-shift-mutations";
 import { useDrawsWorkspaceStore } from "../store/draws-workspace.store";
 
 type DrawsHeaderProps = {
@@ -17,6 +18,7 @@ export function DrawsHeader({
     (state) => state.openCreateConfiguration,
   );
   const openShiftDrawer = useDrawsWorkspaceStore((state) => state.openShiftDrawer);
+  const { autoGenerateShifts } = useDrawShiftMutations();
 
   return (
     <header className="flex flex-col gap-5 border-b border-border pb-6 md:flex-row md:items-end md:justify-between">
@@ -32,6 +34,11 @@ export function DrawsHeader({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        {canCreateShift ? (
+          <Button variant="secondary" onClick={() => autoGenerateShifts.mutate({})} disabled={autoGenerateShifts.isPending}>
+            <RefreshCw className={`h-4 w-4 ${autoGenerateShifts.isPending ? "animate-spin" : ""}`} /> Sincronizar hoy
+          </Button>
+        ) : null}
         {canCreateShift ? (
           <Button variant="secondary" onClick={openShiftDrawer}>
             <CalendarPlus className="h-4 w-4" /> Nuevo turno

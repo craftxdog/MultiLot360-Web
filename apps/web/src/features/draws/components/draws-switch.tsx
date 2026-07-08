@@ -6,17 +6,20 @@ type DrawsSwitchProps = {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
+  "aria-label": string;
 };
 
 export function DrawsSwitch({
   checked,
   onCheckedChange,
   disabled,
+  "aria-label": ariaLabel,
 }: DrawsSwitchProps) {
   return (
     <button
       type="button"
       role="switch"
+      aria-label={ariaLabel}
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}

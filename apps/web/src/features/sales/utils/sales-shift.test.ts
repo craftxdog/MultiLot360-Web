@@ -15,6 +15,8 @@ function shift(time: string, status: DrawShift["status"] = "ABIERTO"): DrawShift
       code: `loto-${time}`,
       time: `${time}:00`,
       tuesdayOnly: false,
+      autoGenerateShifts: true,
+      singleDate: null,
       lockSecondsBefore: 60,
       reopenSecondsAfter: 600,
       active: true,

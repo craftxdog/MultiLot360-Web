@@ -18,6 +18,8 @@ const shift: DrawShift = {
     code: "11am",
     time: "11:00:00",
     tuesdayOnly: false,
+    autoGenerateShifts: true,
+    singleDate: null,
     lockSecondsBefore: 60,
     reopenSecondsAfter: 600,
     active: true,

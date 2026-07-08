@@ -35,15 +35,20 @@ describe("draws service endpoint coverage", () => {
       code: "nacional-11am",
       time: "11:00:00",
       tuesdayOnly: false,
+      autoGenerateShifts: true,
       lockSecondsBefore: 60,
       reopenSecondsAfter: 600,
       active: true,
     });
     await drawsService.getConfiguration(configurationId);
     await drawsService.updateConfiguration(configurationId, { active: false });
+    await drawsService.getConfigurationDeleteImpact(configurationId);
+    await drawsService.softDeleteConfiguration(configurationId, { reason: "Duplicado" });
+    await drawsService.hardDeleteConfiguration(configurationId, { adminPassword: "secret", confirmation: "DELETE_DRAW_CONFIGURATION", reason: "Limpieza" });
     await drawsService.getActiveShifts({ date: "2026-06-29" });
     await drawsService.getShifts({ status: "BLOQUEO" });
     await drawsService.createShift({ configurationId, date: "2026-06-29" });
+    await drawsService.autoGenerateShifts({ date: "2026-06-29" });
     await drawsService.blockShift(shiftId);
     await drawsService.reopenShift(shiftId);
     await drawsService.closeShift(shiftId);
@@ -55,9 +60,13 @@ describe("draws service endpoint coverage", () => {
         { url: "/api/draws/configurations", method: "POST" },
         { url: `/api/draws/configurations/${configurationId}`, method: "GET" },
         { url: `/api/draws/configurations/${configurationId}`, method: "PATCH" },
+        { url: `/api/draws/configurations/${configurationId}/delete-impact`, method: "GET" },
+        { url: `/api/draws/configurations/${configurationId}/soft-delete`, method: "PATCH" },
+        { url: `/api/draws/configurations/${configurationId}`, method: "DELETE" },
         { url: "/api/draws/shifts/active?date=2026-06-29", method: "GET" },
         { url: "/api/draws/shifts?status=BLOQUEO", method: "GET" },
         { url: "/api/draws/shifts", method: "POST" },
+        { url: "/api/draws/shifts/auto-generate", method: "POST" },
         { url: `/api/draws/shifts/${shiftId}/block`, method: "PATCH" },
         { url: `/api/draws/shifts/${shiftId}/reopen`, method: "PATCH" },
         { url: `/api/draws/shifts/${shiftId}/close`, method: "PATCH" },

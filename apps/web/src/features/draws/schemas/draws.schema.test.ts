@@ -15,6 +15,7 @@ describe("draw schemas", () => {
         code: "  NACIONAL_11.AM ",
         time: "11:00",
         tuesdayOnly: false,
+        autoGenerateShifts: true,
         lockSecondsBefore: 60,
         reopenSecondsAfter: 600,
         active: true,
@@ -23,10 +24,24 @@ describe("draw schemas", () => {
         code: "nacional_11.am",
         time: "11:00",
         tuesdayOnly: false,
+        autoGenerateShifts: true,
         lockSecondsBefore: 60,
         reopenSecondsAfter: 600,
         active: true,
       },
+    );
+    assert.equal(
+      drawConfigurationSchema.parse({
+        code: "temporal-9pm",
+        time: "21:00:00",
+        tuesdayOnly: false,
+        autoGenerateShifts: false,
+        singleDate: "2026-07-07",
+        lockSecondsBefore: 60,
+        reopenSecondsAfter: 600,
+        active: true,
+      }).singleDate,
+      "2026-07-07",
     );
   });
 
@@ -35,6 +50,7 @@ describe("draw schemas", () => {
       code: "nacional 11",
       time: "25:00",
       tuesdayOnly: false,
+      autoGenerateShifts: false,
       lockSecondsBefore: 3601,
       reopenSecondsAfter: 86401,
       active: true,

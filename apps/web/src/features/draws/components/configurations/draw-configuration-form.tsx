@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
@@ -35,6 +35,8 @@ export function DrawConfigurationForm({
       code: configuration?.code ?? "",
       time: configuration?.time ?? "11:00:00",
       tuesdayOnly: configuration?.tuesdayOnly ?? false,
+      autoGenerateShifts: configuration?.autoGenerateShifts ?? true,
+      singleDate: configuration?.singleDate ?? undefined,
       lockSecondsBefore: configuration?.lockSecondsBefore ?? 60,
       reopenSecondsAfter: configuration?.reopenSecondsAfter ?? 600,
       active: configuration?.active ?? true,
@@ -46,6 +48,8 @@ export function DrawConfigurationForm({
       code: configuration?.code ?? "",
       time: configuration?.time ?? "11:00:00",
       tuesdayOnly: configuration?.tuesdayOnly ?? false,
+      autoGenerateShifts: configuration?.autoGenerateShifts ?? true,
+      singleDate: configuration?.singleDate ?? undefined,
       lockSecondsBefore: configuration?.lockSecondsBefore ?? 60,
       reopenSecondsAfter: configuration?.reopenSecondsAfter ?? 600,
       active: configuration?.active ?? true,
@@ -54,16 +58,21 @@ export function DrawConfigurationForm({
 
   const isPending =
     createConfiguration.isPending || updateConfiguration.isPending;
+  const autoGenerateShifts = useWatch({ control: form.control, name: "autoGenerateShifts" });
 
   async function onSubmit(values: DrawConfigurationFormValues) {
     try {
+      const input = {
+        ...values,
+        singleDate: values.autoGenerateShifts ? undefined : values.singleDate,
+      };
       if (configuration) {
         await updateConfiguration.mutateAsync({
           configurationId: configuration.id,
-          input: values,
+          input,
         });
       } else {
-        await createConfiguration.mutateAsync(values);
+        await createConfiguration.mutateAsync(input);
       }
 
       onSuccess?.();
@@ -141,6 +150,48 @@ export function DrawConfigurationForm({
 
       <div className="flex items-center justify-between rounded-2xl border border-border bg-muted/45 p-4">
         <div>
+          <p className="text-sm font-medium text-foreground">Autogenerar turnos diarios</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Si está activo, la API crea el turno automáticamente cada día aplicable.
+          </p>
+        </div>
+
+        <Controller
+          control={form.control}
+          name="autoGenerateShifts"
+          render={({ field }) => (
+            <DrawsSwitch
+              aria-label="Autogenerar turnos diarios"
+              checked={field.value}
+              disabled={isPending}
+              onCheckedChange={(checked) => {
+                field.onChange(checked);
+                if (checked) form.setValue("singleDate", undefined, { shouldDirty: true, shouldValidate: true });
+              }}
+            />
+          )}
+        />
+      </div>
+
+      {!autoGenerateShifts ? (
+        <div>
+          <Label htmlFor="singleDate">Fecha única</Label>
+          <Input
+            id="singleDate"
+            type="date"
+            disabled={isPending}
+            className="mt-2"
+            {...form.register("singleDate")}
+          />
+          <FieldError message={form.formState.errors.singleDate?.message} />
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
+            Este sorteo solo podrá operar en esta fecha.
+          </p>
+        </div>
+      ) : null}
+
+      <div className="flex items-center justify-between rounded-2xl border border-border bg-muted/45 p-4">
+        <div>
           <p className="text-sm font-medium text-foreground">Solo martes</p>
           <p className="mt-1 text-xs text-muted-foreground">
             Esta configuración solamente se usará los martes.
@@ -152,6 +203,7 @@ export function DrawConfigurationForm({
           name="tuesdayOnly"
           render={({ field }) => (
             <DrawsSwitch
+              aria-label="Solo martes"
               checked={field.value}
               disabled={isPending}
               onCheckedChange={field.onChange}
@@ -173,6 +225,7 @@ export function DrawConfigurationForm({
           name="active"
           render={({ field }) => (
             <DrawsSwitch
+              aria-label="Configuración activa"
               checked={field.value}
               disabled={isPending}
               onCheckedChange={field.onChange}

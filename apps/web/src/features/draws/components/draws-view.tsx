@@ -63,6 +63,7 @@ export function DrawsView({ defaultView }: DrawsViewProps) {
   const canReadShifts = permissions.includes("turnos.read");
   const canCreateConfiguration = permissions.includes("sorteos.create");
   const canUpdateConfiguration = permissions.includes("sorteos.update");
+  const canDeleteConfiguration = permissions.includes("sorteos.delete");
   const canCreateShift =
     permissions.includes("turnos.create") && canReadConfigurations;
   const canUpdateShift = permissions.includes("turnos.update");
@@ -145,6 +146,7 @@ export function DrawsView({ defaultView }: DrawsViewProps) {
               basePath={pathname}
               params={sharedParams}
               canUpdate={canUpdateConfiguration}
+              canDelete={canDeleteConfiguration}
             />
           ) : null}
         </div>
