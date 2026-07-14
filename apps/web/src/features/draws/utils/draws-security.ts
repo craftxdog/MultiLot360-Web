@@ -1,9 +1,5 @@
-export function isSameOriginMutation(requestUrl: string, origin: string | null) {
-  if (!origin) return false;
+import { isTrustedMutationOrigin } from "@/lib/security/mutation-origin";
 
-  try {
-    return new URL(requestUrl).origin === new URL(origin).origin;
-  } catch {
-    return false;
-  }
+export function isSameOriginMutation(requestUrl: string, origin: string | null) {
+  return isTrustedMutationOrigin(requestUrl, origin);
 }

@@ -1,8 +1,5 @@
+import { isTrustedMutationOrigin } from "@/lib/security/mutation-origin";
+
 export function isTrustedSalesOrigin(requestUrl: string, origin: string | null) {
-  if (!origin) return false;
-  try {
-    return new URL(requestUrl).origin === new URL(origin).origin;
-  } catch {
-    return false;
-  }
+  return isTrustedMutationOrigin(requestUrl, origin);
 }

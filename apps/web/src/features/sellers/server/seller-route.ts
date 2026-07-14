@@ -6,14 +6,14 @@ import { getCurrentUserWithRefresh } from "@/features/auth/server/get-current-us
 import { ApiError } from "@/lib/api/http";
 import { shouldRefreshAccessToken } from "@/lib/auth/jwt";
 import { getAccessToken } from "@/lib/auth/session";
+import { isTrustedMutationOrigin } from "@/lib/security/mutation-origin";
 
 class SellerRouteError extends Error {
   constructor(message: string, readonly status: number) { super(message); }
 }
 
 export function assertSellerMutationOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-  if (!origin || new URL(origin).origin !== new URL(request.url).origin) {
+  if (!isTrustedMutationOrigin(request.url, request.headers.get("origin"))) {
     throw new SellerRouteError("Origen de solicitud no permitido.", 403);
   }
 }
