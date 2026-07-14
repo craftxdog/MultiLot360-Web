@@ -4,6 +4,7 @@ import { env } from "@/config/env";
 const apiClient = createApiClient({
   baseUrl: env.apiUrl,
   timeoutMs: 10_000,
+  fetcher: (input, init) => fetch(input, init),
 });
 
 export const http = apiClient.request;

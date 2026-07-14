@@ -13,8 +13,16 @@ import {
   passwordResetAction,
 } from "../actions/password-reset.action";
 
-export function PasswordResetForm() {
-  const [state, action, pending] = useActionState(passwordResetAction, initialPasswordResetState);
+type PasswordResetFormProps = {
+  initialEmail?: string;
+};
+
+export function PasswordResetForm({ initialEmail = "" }: PasswordResetFormProps) {
+  const normalizedInitialEmail = initialEmail.trim().toLowerCase();
+  const [state, action, pending] = useActionState(passwordResetAction, {
+    ...initialPasswordResetState,
+    email: normalizedInitialEmail,
+  });
 
   if (state.phase === "done") {
     return (
@@ -32,12 +40,12 @@ export function PasswordResetForm() {
       {state.phase === "confirm" ? <input type="hidden" name="email" value={state.email} /> : null}
       <div className="rounded-xl border border-border bg-muted/35 p-3 text-xs leading-5 text-muted-foreground">
         {state.message ?? (state.phase === "request"
-          ? "Te enviaremos un código temporal. La respuesta nunca confirma si la cuenta existe."
+          ? "Usaremos el endpoint público de recuperación. Te enviaremos un código temporal y la respuesta nunca confirma si la cuenta existe."
           : `Escribe el código enviado a ${state.email}.`)}
       </div>
 
       {state.phase === "request" ? (
-        <div><Label htmlFor="reset-email">Correo</Label><div className="relative mt-2"><Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input id="reset-email" name="email" type="email" autoComplete="email" defaultValue={state.email} className="pl-10" /></div><FieldError message={state.errors?.email?.[0]} /></div>
+        <div><Label htmlFor="reset-email">Correo de la cuenta</Label><div className="relative mt-2"><Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input id="reset-email" name="email" type="email" autoComplete="email" autoCapitalize="none" defaultValue={state.email} placeholder="nombre@empresa.com" className="pl-10" required /></div><FieldError message={state.errors?.email?.[0]} /></div>
       ) : (
         <>
           <div><Label htmlFor="reset-code">Código de recuperación</Label><div className="relative mt-2"><KeyRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input id="reset-code" name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} className="pl-10 font-mono tracking-[0.28em]" onInput={(event) => { event.currentTarget.value = event.currentTarget.value.replace(/\D/g, "").slice(0, 6); }} /></div><FieldError message={state.errors?.code?.[0]} /></div>

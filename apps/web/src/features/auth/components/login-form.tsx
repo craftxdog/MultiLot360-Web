@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, EyeOff, KeyRound, Store } from "lucide-react";
+import { Eye, EyeOff, KeyRound, LifeBuoy, Store } from "lucide-react";
 import { useActionState, useState } from "react";
 import { routes } from "@/config/routes";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,14 @@ type LoginMode = "credentials" | "seller-access";
 export function LoginForm({ next }: LoginFormProps) {
   const [mode, setMode] = useState<LoginMode>("credentials");
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
   const [state, formAction, pending] = useActionState(
     loginAction,
     initialAuthActionState,
   );
+  const recoveryHref = email.trim()
+    ? `${routes.forgotPassword}?email=${encodeURIComponent(email.trim())}`
+    : routes.forgotPassword;
 
   return (
     <div>
@@ -88,6 +92,8 @@ export function LoginForm({ next }: LoginFormProps) {
               autoCapitalize="none"
               disabled={pending}
               required
+              value={email}
+              onChange={(event) => setEmail(event.currentTarget.value)}
               aria-invalid={Boolean(state.errors?.email)}
               className="mt-2 px-3.5"
             />
@@ -100,10 +106,10 @@ export function LoginForm({ next }: LoginFormProps) {
                 Contraseña
               </Label>
               <Link
-                href={routes.forgotPassword}
-                className="text-[11px] text-muted-foreground transition hover:text-foreground"
+                href={recoveryHref}
+                className="text-[11px] font-medium text-muted-foreground transition hover:text-foreground"
               >
-                ¿Necesitas ayuda?
+                Olvidé mi contraseña
               </Link>
             </div>
             <div className="relative mt-2">
@@ -141,6 +147,16 @@ export function LoginForm({ next }: LoginFormProps) {
           >
             {pending ? "Verificando acceso..." : "Entrar a MultiLot"}
           </Button>
+
+          <div className="rounded-xl border border-border bg-muted/30 px-3.5 py-3 text-xs leading-5 text-muted-foreground">
+            <div className="flex gap-2">
+              <LifeBuoy className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <p>
+                Si no recuerdas la contraseña, usa el reset público. Te enviaremos
+                un código de un solo uso sin revelar si el correo existe.
+              </p>
+            </div>
+          </div>
         </form>
       )}
     </div>

@@ -6,14 +6,22 @@ export const metadata: Metadata = {
   title: "Recuperar acceso | MultiLot 360",
 };
 
-export default function ForgotPasswordPage() {
+type ForgotPasswordPageProps = {
+  searchParams?: Promise<{
+    email?: string;
+  }>;
+};
+
+export default async function ForgotPasswordPage({ searchParams }: ForgotPasswordPageProps) {
+  const params = await searchParams;
+
   return (
     <AuthShell
       eyebrow="Recuperación de acceso"
       title="Recupera tu cuenta"
       description="Recibe un código de un solo uso y cierra las sesiones anteriores de forma segura."
     >
-      <PasswordResetForm />
+      <PasswordResetForm initialEmail={params?.email} />
     </AuthShell>
   );
 }

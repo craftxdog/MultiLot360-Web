@@ -60,13 +60,24 @@ El frontend se verificó contra `multilot-api360`:
 - `POST /auth/refresh`
 - `POST /auth/logout`
 - `GET /auth/me`
+- `POST /auth/password/reset/request`
+- `POST /auth/password/reset/confirm`
 - `POST /identity-access/sellers/access-code/confirm`
 
 `GET /auth/me` devuelve `roleId` y `roleName` planos, mientras login devuelve un
 rol anidado. `normalizeAuthMe` elimina esa diferencia para el resto de la UI.
 
-La API todavía no expone forgot/reset password. La ruta web lo explica y no
-simula un formulario que nunca podría completarse.
+El reset público vive en el login/ruta `/forgot-password` y usa únicamente los
+endpoints públicos de recuperación:
+
+- `POST /auth/password/reset/request` pide el código por correo y conserva una
+  respuesta genérica para evitar enumeración de cuentas.
+- `POST /auth/password/reset/confirm` valida correo + código + nueva contraseña
+  y revoca sesiones refresh.
+
+No se mezcla con el reset administrativo. El reset admin sigue protegido en
+`POST /auth/password/reset/admin` y se consume desde `/api/sellers/password-reset`
+con Bearer/cookies de administrador.
 
 ## Comandos
 
