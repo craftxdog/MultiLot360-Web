@@ -34,9 +34,11 @@ evidencia de verificación está en
 ## Entrega y despliegue
 
 El repositorio usa Gitflow con `develop` como rama de integración y `master`
-como rama publicable. La automatización valida cada push/PR y, al publicar en
-`master`, construye una imagen standalone de Next.js en GitHub Container
-Registry. Consulta [docs/gitflow-and-delivery.md](docs/gitflow-and-delivery.md).
+como rama publicable. La automatización valida cada push/PR, construye la imagen
+standalone de Next.js en GitHub Container Registry y dispara Dokploy para que el
+VPS sólo haga pull/deploy. Consulta
+[docs/gitflow-and-delivery.md](docs/gitflow-and-delivery.md) y
+[docs/dokploy-deployment.md](docs/dokploy-deployment.md).
 
 ## Desktop
 

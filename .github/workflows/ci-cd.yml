@@ -14,7 +14,7 @@ on:
         type: choice
         options:
           - verify
-          - preview
+          - development
           - production
           - desktop
       desktop_url:
@@ -41,7 +41,6 @@ permissions:
 
 env:
   BUN_VERSION: 1.3.11
-  VERCEL_CLI_VERSION: 54.21.1
 
 jobs:
   policy:
@@ -76,17 +75,25 @@ jobs:
               ;;
           esac
 
-      - name: Validate manual production dispatch
-        if: github.event_name == 'workflow_dispatch' && (inputs.target == 'production' || inputs.target == 'desktop')
+      - name: Validate manual deployment dispatch
+        if: github.event_name == 'workflow_dispatch' && inputs.target != 'verify'
         run: |
           set -euo pipefail
-          if [ "${GITHUB_REF_NAME}" != "master" ]; then
+
+          if [ "${{ inputs.target }}" = "development" ] && [ "${GITHUB_REF_NAME}" != "develop" ]; then
+            echo "::error::Development deploy jobs must run from develop."
+            exit 1
+          fi
+
+          if [ "${{ inputs.target }}" != "development" ] && [ "${GITHUB_REF_NAME}" != "master" ]; then
             echo "::error::Production and desktop release jobs must run from master."
             exit 1
           fi
 
       - name: Require master and develop sync before production publication
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: |
+          (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+          (github.event_name == 'workflow_dispatch' && inputs.target == 'production')
         run: |
           set -euo pipefail
           git fetch origin develop master
@@ -131,22 +138,91 @@ jobs:
         run: bun run build:web
         env:
           NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'http://localhost:8080' }}
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1' }}
 
   docker-image:
-    name: Publish GHCR image
+    name: Build and publish GHCR image
     if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
       (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
-      (github.event_name == 'workflow_dispatch' && inputs.target == 'production')
+      (github.event_name == 'workflow_dispatch' && (inputs.target == 'development' || inputs.target == 'production'))
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 25
     permissions:
       contents: read
       packages: write
+    environment:
+      name: ${{ github.ref_name == 'master' && 'production' || 'development' }}
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+      primary-tag: ${{ steps.image.outputs.primary_tag }}
+      immutable-tag: ${{ steps.image.outputs.immutable_tag }}
+    env:
+      IMAGE_CHANNEL: ${{ github.ref_name == 'master' && 'production' || 'development' }}
+      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+      NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+      NEXT_PUBLIC_DESKTOP_RELEASE_URL: ${{ vars.NEXT_PUBLIC_DESKTOP_RELEASE_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Validate public build variables
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NEXT_PUBLIC_APP_URL}" ]; then
+            echo "::error::Configure NEXT_PUBLIC_APP_URL as a GitHub Environment variable for ${IMAGE_CHANNEL}."
+            exit 1
+          fi
+
+          if [ -z "${NEXT_PUBLIC_API_URL}" ]; then
+            echo "::error::Configure NEXT_PUBLIC_API_URL as a GitHub Environment variable for ${IMAGE_CHANNEL}. Include the API prefix, for example https://api.example.com/api/v1."
+            exit 1
+          fi
+
+          case "${NEXT_PUBLIC_APP_URL}" in
+            http://*|https://*) ;;
+            *)
+              echo "::error::NEXT_PUBLIC_APP_URL must start with http:// or https://."
+              exit 1
+              ;;
+          esac
+
+          case "${NEXT_PUBLIC_API_URL}" in
+            http://*|https://*) ;;
+            *)
+              echo "::error::NEXT_PUBLIC_API_URL must start with http:// or https://."
+              exit 1
+              ;;
+          esac
+
+      - name: Prepare image tags
+        id: image
+        run: |
+          set -euo pipefail
+
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SHORT_SHA="${GITHUB_SHA::12}"
+          IMMUTABLE_TAG="${IMAGE_CHANNEL}-${SHORT_SHA}"
+
+          {
+            echo "image=${IMAGE}"
+            echo "primary_tag=${IMAGE_CHANNEL}"
+            echo "immutable_tag=${IMMUTABLE_TAG}"
+            echo "tags<<EOF"
+            echo "${IMAGE}:${IMAGE_CHANNEL}"
+            echo "${IMAGE}:${IMMUTABLE_TAG}"
+            echo "${IMAGE}:sha-${SHORT_SHA}"
+            if [ "${IMAGE_CHANNEL}" = "production" ]; then
+              echo "${IMAGE}:latest"
+            fi
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+          echo "### GHCR image" >> "${GITHUB_STEP_SUMMARY}"
+          echo "${IMAGE}:${IMAGE_CHANNEL}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "${IMAGE}:${IMMUTABLE_TAG}" >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -158,131 +234,98 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate image metadata
-        uses: docker/metadata-action@v5
-        id: meta
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=raw,value=latest
-            type=sha,prefix=sha-
-
       - name: Build and publish image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.image.outputs.tags }}
           build-args: |
-            NEXT_PUBLIC_APP_URL=${{ vars.NEXT_PUBLIC_APP_URL || 'http://localhost:8080' }}
-            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3000' }}
+            NEXT_PUBLIC_APP_URL=${{ env.NEXT_PUBLIC_APP_URL }}
+            NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_DESKTOP_RELEASE_URL=${{ env.NEXT_PUBLIC_DESKTOP_RELEASE_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  vercel-preview:
-    name: Deploy Vercel preview
+  dokploy-deploy:
+    name: Deploy with Dokploy
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-      (github.event_name == 'workflow_dispatch' && inputs.target == 'preview')
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment:
-      name: preview
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      HAS_VERCEL_CONFIG: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
-    steps:
-      - name: Skip when Vercel secrets are missing
-        if: env.HAS_VERCEL_CONFIG != 'true'
-        run: |
-          echo "::notice::Vercel preview deploy skipped. Configure VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID to enable it."
-
-      - name: Checkout repository
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install pinned Vercel CLI
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        run: npm install --global vercel@${{ env.VERCEL_CLI_VERSION }}
-
-      - name: Pull preview environment
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        run: vercel pull --yes --environment=preview --token="${VERCEL_TOKEN}"
-
-      - name: Build preview artifact
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        run: vercel build --token="${VERCEL_TOKEN}"
-
-      - name: Deploy preview artifact
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        run: |
-          set -euo pipefail
-          DEPLOYMENT_URL="$(vercel deploy --prebuilt --target=preview --token="${VERCEL_TOKEN}")"
-          echo "Preview deployment: ${DEPLOYMENT_URL}"
-          echo "### Preview deployment" >> "${GITHUB_STEP_SUMMARY}"
-          echo "${DEPLOYMENT_URL}" >> "${GITHUB_STEP_SUMMARY}"
-
-  vercel-production:
-    name: Deploy Vercel production
-    if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
-      (github.event_name == 'workflow_dispatch' && inputs.target == 'production')
-    needs: [verify, docker-image]
+      (github.event_name == 'workflow_dispatch' && (inputs.target == 'development' || inputs.target == 'production'))
+    needs: docker-image
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     environment:
-      name: production
+      name: ${{ github.ref_name == 'master' && 'production' || 'development' }}
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      HAS_VERCEL_CONFIG: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
+      DEPLOY_ENV: ${{ github.ref_name == 'master' && 'production' || 'development' }}
+      IMAGE_REF: ${{ needs.docker-image.outputs.image }}:${{ needs.docker-image.outputs.primary-tag }}
+      IMMUTABLE_IMAGE_REF: ${{ needs.docker-image.outputs.image }}:${{ needs.docker-image.outputs.immutable-tag }}
+      DOKPLOY_URL: ${{ vars.DOKPLOY_URL || secrets.DOKPLOY_URL }}
+      DOKPLOY_APPLICATION_ID: ${{ vars.DOKPLOY_APPLICATION_ID || secrets.DOKPLOY_APPLICATION_ID }}
+      DOKPLOY_API_TOKEN: ${{ secrets.DOKPLOY_API_TOKEN }}
+      DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
     steps:
-      - name: Skip when Vercel secrets are missing
-        if: env.HAS_VERCEL_CONFIG != 'true'
-        run: |
-          echo "::notice::Vercel production deploy skipped. Configure VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID to enable it."
-
-      - name: Checkout repository
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install pinned Vercel CLI
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        run: npm install --global vercel@${{ env.VERCEL_CLI_VERSION }}
-
-      - name: Pull production environment
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        run: vercel pull --yes --environment=production --token="${VERCEL_TOKEN}"
-
-      - name: Build production artifact
-        if: env.HAS_VERCEL_CONFIG == 'true'
-        run: vercel build --prod --token="${VERCEL_TOKEN}"
-
-      - name: Deploy production artifact
-        if: env.HAS_VERCEL_CONFIG == 'true'
+      - name: Validate Dokploy configuration
+        id: dokploy-config
         run: |
           set -euo pipefail
-          DEPLOYMENT_URL="$(vercel deploy --prebuilt --prod --token="${VERCEL_TOKEN}")"
-          echo "Production deployment: ${DEPLOYMENT_URL}"
-          echo "### Production deployment" >> "${GITHUB_STEP_SUMMARY}"
-          echo "${DEPLOYMENT_URL}" >> "${GITHUB_STEP_SUMMARY}"
+
+          if [ -z "${DOKPLOY_API_TOKEN}" ] && [ -z "${DOKPLOY_WEBHOOK_URL}" ]; then
+            if [ "${DEPLOY_ENV}" = "production" ]; then
+              echo "::error::Configure DOKPLOY_API_TOKEN + DOKPLOY_APPLICATION_ID, or DOKPLOY_WEBHOOK_URL, in the production GitHub Environment."
+              exit 1
+            fi
+
+            echo "::notice::No Dokploy secret configured for ${DEPLOY_ENV}; the image was published but deployment is skipped."
+            echo "configured=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if [ -n "${DOKPLOY_API_TOKEN}" ]; then
+            if [ -z "${DOKPLOY_URL}" ]; then
+              echo "::error::Configure DOKPLOY_URL for API deployments, for example https://dokploy.alphaby.cloud."
+              exit 1
+            fi
+
+            if [ -z "${DOKPLOY_APPLICATION_ID}" ]; then
+              echo "::error::Configure DOKPLOY_APPLICATION_ID for the ${DEPLOY_ENV} environment."
+              exit 1
+            fi
+          fi
+
+          echo "configured=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Trigger Dokploy deployment
+        if: steps.dokploy-config.outputs.configured == 'true'
+        run: |
+          set -euo pipefail
+
+          echo "Deploying ${IMAGE_REF} to ${DEPLOY_ENV}."
+
+          if [ -n "${DOKPLOY_API_TOKEN}" ]; then
+            DOKPLOY_BASE_URL="${DOKPLOY_URL%/}"
+            curl --fail-with-body --silent --show-error \
+              --request POST \
+              "${DOKPLOY_BASE_URL}/api/application.deploy" \
+              --header "accept: application/json" \
+              --header "content-type: application/json" \
+              --header "x-api-key: ${DOKPLOY_API_TOKEN}" \
+              --data "{\"applicationId\":\"${DOKPLOY_APPLICATION_ID}\"}" \
+              --output dokploy-response.json
+          else
+            curl --fail-with-body --silent --show-error \
+              --request POST \
+              "${DOKPLOY_WEBHOOK_URL}" \
+              --header "content-type: application/json" \
+              --data "{\"source\":\"github-actions\",\"environment\":\"${DEPLOY_ENV}\",\"branch\":\"${GITHUB_REF_NAME}\",\"image\":\"${IMAGE_REF}\",\"immutableImage\":\"${IMMUTABLE_IMAGE_REF}\",\"sha\":\"${GITHUB_SHA}\"}" \
+              --output dokploy-response.json
+          fi
+
+          echo "### Dokploy deployment" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Environment: ${DEPLOY_ENV}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "Image: ${IMAGE_REF}" >> "${GITHUB_STEP_SUMMARY}"
 
   desktop-installers:
     name: Build desktop installers

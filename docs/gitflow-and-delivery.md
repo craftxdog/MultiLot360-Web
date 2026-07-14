@@ -19,30 +19,45 @@
 5. pruebas;
 6. build standalone de Next.js.
 
-Un push validado a `master` publica dos etiquetas en GHCR: `latest` y la del
-SHA. El contenedor corre sin dependencias de desarrollo y expone el puerto
-`8080`.
+Un push validado a `develop` publica la imagen `development` en GHCR y dispara
+Dokploy development si ese environment ya tiene webhook/token configurado. Un
+push validado a `master` publica `production`/`latest` y dispara Dokploy
+production. El contenedor corre sin dependencias de desarrollo y expone el
+puerto `3000` para coincidir con el dominio actual configurado en Dokploy.
 
-El workflow también deja preparado despliegue Vercel opcional:
+GitHub hace el trabajo pesado de CI/CD y build. Dokploy queda como runtime/deploy
+target para no compilar dentro del VPS pequeño:
 
-- `develop` publica preview cuando existen los secrets de Vercel.
-- `master` publica producción cuando existen los secrets de Vercel.
-- si faltan los secrets, el despliegue se omite sin romper las validaciones.
+- `develop` → GitHub Environment `development` → GHCR tag `development`.
+- `master` → GitHub Environment `production` → GHCR tags `production` y
+  `latest`.
+- Dokploy se dispara por API token o por webhook secreto.
 - la ejecución manual `desktop` genera instaladores macOS/Windows con Tauri 2 y
   publica/actualiza el GitHub Release de escritorio.
 
 Más detalle: [`docs/ci-cd.md`](./ci-cd.md).
+Configuración Dokploy: [`docs/dokploy-deployment.md`](./dokploy-deployment.md).
 
 ## Variables de publicación
 
 Configura en GitHub Actions > Variables:
 
 - `NEXT_PUBLIC_APP_URL`: URL pública del frontend.
-- `NEXT_PUBLIC_API_URL`: URL HTTPS de la API MultiLot 360.
+- `NEXT_PUBLIC_API_URL`: URL HTTPS de la API MultiLot 360 con prefijo, por
+  ejemplo `https://api.tudominio.com/api/v1`.
+- `DOKPLOY_URL`: URL de tu panel Dokploy.
+- `DOKPLOY_APPLICATION_ID`: ID de la aplicación Dokploy de ese ambiente.
 
-Si no existen, el pipeline usa valores localhost útiles sólo para comprobar la
-construcción. La aplicación mantiene los secretos de sesión en cookies
-HTTP-only; no deben agregarse `.env*` al repositorio.
+Configura en GitHub Actions > Secrets por environment:
+
+- `DOKPLOY_API_TOKEN`: recomendado; permite llamar
+  `POST /api/application.deploy`.
+- `DOKPLOY_WEBHOOK_URL`: alternativa si prefieres usar el webhook de Dokploy.
+
+Las variables públicas de Next se inyectan al construir la imagen en GitHub. No
+deben corregirse luego en Dokploy porque `NEXT_PUBLIC_*` queda embebido en el
+bundle. La aplicación mantiene los secretos de sesión en cookies HTTP-only; no
+deben agregarse `.env*` al repositorio.
 
 ## Comandos locales
 
