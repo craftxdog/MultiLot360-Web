@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 import { ArrowLeft, CheckCircle2, KeyRound, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,14 @@ import { passwordResetAction } from "../actions/password-reset.action";
 type PasswordResetFormProps = {
   initialEmail?: string;
 };
+
+export function PasswordResetFormFromUrl() {
+  const searchParams = useSearchParams();
+
+  return (
+    <PasswordResetForm initialEmail={searchParams.get("email") ?? ""} />
+  );
+}
 
 export function PasswordResetForm({ initialEmail = "" }: PasswordResetFormProps) {
   const normalizedInitialEmail = initialEmail.trim().toLowerCase();
