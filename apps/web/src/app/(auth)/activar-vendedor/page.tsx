@@ -1,33 +1,29 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AuthShell } from "@/features/auth/components/auth-shell";
-import { SellerAccessForm } from "@/features/auth/components/seller-access-form";
+import { SellerActivationFormFromUrl } from "@/features/auth/components/seller-access-form";
 
-type SellerActivationPageProps = {
-  searchParams: Promise<{
-    email?: string;
-    code?: string;
-    next?: string;
-  }>;
-};
-
-export default async function SellerActivationPage({
-  searchParams,
-}: SellerActivationPageProps) {
-  const params = await searchParams;
-  const accessCode = params.code?.replace(/\D/g, "").slice(0, 6);
-
+export default function SellerActivationPage() {
   return (
     <AuthShell
       title="Activa tu acceso"
       description="Confirma la invitación enviada por tu administrador y crea tu contraseña segura."
     >
-      <SellerAccessForm
-        next={params.next}
-        initialEmail={params.email?.trim().toLowerCase()}
-        initialAccessCode={accessCode}
-        sanitizeActivationUrl
-      />
+      <Suspense fallback={<SellerActivationFallback />}>
+        <SellerActivationFormFromUrl />
+      </Suspense>
     </AuthShell>
+  );
+}
+
+function SellerActivationFallback() {
+  return (
+    <div aria-label="Cargando activación segura" aria-busy="true" className="space-y-4">
+      <div className="h-16 animate-pulse rounded-xl bg-muted/60" />
+      <div className="h-11 animate-pulse rounded-xl bg-muted/60" />
+      <div className="h-11 animate-pulse rounded-xl bg-muted/60" />
+      <div className="h-11 animate-pulse rounded-xl bg-muted/60" />
+    </div>
   );
 }
 

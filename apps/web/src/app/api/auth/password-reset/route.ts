@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     if (phase === "request") {
       const input = requestPasswordResetSchema.parse(payload);
       const result = await authService.requestPasswordReset({ email: input.email });
-      return response(result);
+      return response(result, 202);
     }
 
     const input = confirmPasswordResetSchema.parse(payload);
@@ -47,12 +47,12 @@ export async function POST(request: Request) {
       ? 400
       : error instanceof ApiError && error.status >= 400 && error.status < 600
         ? error.status
-        : 500;
+        : error instanceof ApiError
+          ? 502
+          : 500;
     const message = error instanceof ZodError
       ? (error.issues[0]?.message ?? "Revisa los datos enviados.")
-      : error instanceof ApiError
-        ? error.message
-        : "No pudimos procesar la solicitud. Intenta nuevamente.";
+      : "No pudimos procesar la solicitud. Intenta nuevamente.";
 
     return response({ message }, status);
   }

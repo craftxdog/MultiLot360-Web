@@ -69,11 +69,9 @@ export type LogoutResponse = {
   signedOut: true;
 };
 
-export type ConfirmSellerAccessPayload = {
-  email: string;
-  accessCode: string;
-  password: string;
-};
+export type ConfirmSellerAccessPayload =
+  | { actionToken: string; password: string }
+  | { email: string; accessCode: string; password: string };
 
 export type ConfirmSellerAccessResponse = {
   userId: string;

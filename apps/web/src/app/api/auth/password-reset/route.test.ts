@@ -35,7 +35,7 @@ describe("POST /api/auth/password-reset", () => {
       body: JSON.stringify({ phase: "request", email: " USER@example.com " }),
     }));
 
-    assert.equal(response.status, 200);
+    assert.equal(response.status, 202);
     assert.equal(response.headers.get("cache-control"), "no-store");
     assert.deepEqual(upstreamRequests, [{
       url: `http://localhost:3000${apiEndpoints.auth.requestPasswordReset}`,
@@ -69,5 +69,22 @@ describe("POST /api/auth/password-reset", () => {
 
     assert.equal(response.status, 403);
     assert.equal(upstreamRequests.length, 0);
+  });
+
+  it("does not expose upstream recovery errors", async () => {
+    globalThis.fetch = (async () => Response.json(
+      { message: "internal account detail" },
+      { status: 503 },
+    )) as typeof fetch;
+
+    const response = await POST(new Request("https://app.test/api/auth/password-reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: "https://app.test" },
+      body: JSON.stringify({ phase: "request", email: "user@example.com" }),
+    }));
+    const payload = await response.json() as { message: string };
+
+    assert.equal(response.status, 503);
+    assert.doesNotMatch(payload.message, /internal|account detail/);
   });
 });

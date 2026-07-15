@@ -1,138 +1,165 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useActionState, useLayoutEffect, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { initialAuthActionState } from "../actions/auth-action-state";
-import { confirmSellerAccessAction } from "../actions/confirm-seller-access.action";
+import { routes } from "@/config/routes";
+import {
+  initialSellerAccessState,
+  submitSellerAccess,
+  type SellerAccessState,
+} from "../services/seller-access.client";
+import {
+  cleanSellerActivationUrl,
+  parseSellerActivationParams,
+} from "../utils/seller-activation-url";
 import { OtpCodeInput } from "./otp-code-input";
 
 type SellerAccessFormProps = {
   next?: string;
+  actionToken?: string;
+  invalidToken?: boolean;
   initialEmail?: string;
   initialAccessCode?: string;
-  sanitizeActivationUrl?: boolean;
 };
 
-export function SellerAccessForm({
-  next,
+type SellerAccessFormViewProps = SellerAccessFormProps & {
+  state: SellerAccessState;
+  pending: boolean;
+  manualMode: boolean;
+  formAction?: (formData: FormData) => void;
+  onUseManual?: () => void;
+};
+
+export function SellerAccessFormView({
+  actionToken,
+  invalidToken = false,
   initialEmail,
   initialAccessCode,
-  sanitizeActivationUrl = false,
-}: SellerAccessFormProps) {
-  const [state, formAction, pending] = useActionState(
-    confirmSellerAccessAction,
-    initialAuthActionState,
-  );
+  state,
+  pending,
+  manualMode,
+  formAction,
+  onUseManual,
+}: SellerAccessFormViewProps) {
+  const tokenMode = Boolean(actionToken) && !manualMode;
 
-  useEffect(() => {
-    if (!sanitizeActivationUrl || (!initialEmail && !initialAccessCode)) return;
-
-    window.history.replaceState({}, "", window.location.pathname);
-  }, [initialAccessCode, initialEmail, sanitizeActivationUrl]);
+  if (state.status === "success") {
+    return (
+      <div className="text-center" data-testid="seller-access-success">
+        <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
+        <p className="mt-4 text-sm leading-6 text-muted-foreground">{state.message}</p>
+        <Link href={routes.login} className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground">
+          Iniciar sesión
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
       <div>
         <p className="text-sm text-foreground">Activa tu acceso de vendedor</p>
         <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-          Ingresa el correo de la invitación, el código de 6 dígitos y crea tu
-          contraseña de vendedor.
+          {tokenMode
+            ? "Crea tu contraseña para confirmar la invitación segura."
+            : "Ingresa el correo, el código de 6 dígitos y crea tu contraseña."}
         </p>
       </div>
 
-      <form action={formAction} className="space-y-4">
-        {next ? <input name="next" type="hidden" value={next} /> : null}
+      {invalidToken ? (
+        <div role="alert" className="rounded-xl border border-danger/20 bg-danger/8 px-3.5 py-3 text-sm leading-5 text-danger">
+          El enlace no es válido. Usa el código manual o solicita un nuevo enlace a tu administrador.
+        </div>
+      ) : null}
 
+      <form action={formAction} className="space-y-4" data-testid="seller-access-form">
         {state.message ? (
-          <div
-            role="alert"
-            className="rounded-xl border border-danger/20 bg-danger/8 px-3.5 py-3 text-sm leading-5 text-danger"
-          >
+          <div role="alert" className="rounded-xl border border-danger/20 bg-danger/8 px-3.5 py-3 text-sm leading-5 text-danger">
             {state.message}
           </div>
         ) : null}
 
-        <div>
-          <Label htmlFor="seller-email" className="sr-only">
-            Correo electrónico
-          </Label>
-          <Input
-            id="seller-email"
-            name="email"
-            type="email"
-            placeholder="Correo de la invitación"
-            autoComplete="email"
-            defaultValue={initialEmail}
-            disabled={pending}
-            required
-            aria-invalid={Boolean(state.errors?.email)}
-            className="px-3.5"
-          />
-          <FieldError message={state.errors?.email} />
-        </div>
+        {!tokenMode ? (
+          <>
+            <div>
+              <Label htmlFor="seller-email" className="sr-only">Correo electrónico</Label>
+              <Input id="seller-email" name="email" type="email" placeholder="Correo de la invitación" autoComplete="email" defaultValue={initialEmail} disabled={pending} required aria-invalid={Boolean(state.errors.email)} className="px-3.5" />
+              <FieldError message={state.errors.email} />
+            </div>
+            <div>
+              <div className="mb-2 flex items-center justify-between"><Label className="text-xs text-muted-foreground">Código de acceso</Label><span className="text-xs text-muted-foreground">6 dígitos</span></div>
+              <OtpCodeInput name="accessCode" initialValue={initialAccessCode} disabled={pending} error={Boolean(state.errors.accessCode)} />
+              <FieldError message={state.errors.accessCode} />
+            </div>
+          </>
+        ) : null}
 
         <div>
-          <div className="mb-2 flex items-center justify-between">
-            <Label className="text-xs text-muted-foreground">Código de acceso</Label>
-            <span className="text-xs text-muted-foreground">6 dígitos</span>
-          </div>
-
-          <OtpCodeInput
-            name="accessCode"
-            initialValue={initialAccessCode}
-            disabled={pending}
-            error={Boolean(state.errors?.accessCode)}
-          />
-          <FieldError message={state.errors?.accessCode} />
+          <Label htmlFor="seller-password" className="sr-only">Contraseña</Label>
+          <Input id="seller-password" name="password" type="password" placeholder="Crea una contraseña" autoComplete="new-password" disabled={pending} required aria-invalid={Boolean(state.errors.password)} className="px-3.5" />
+          <FieldError message={state.errors.password} />
         </div>
-
         <div>
-          <Label htmlFor="seller-password" className="sr-only">
-            Contraseña
-          </Label>
-          <Input
-            id="seller-password"
-            name="password"
-            type="password"
-            placeholder="Crea una contraseña"
-            autoComplete="new-password"
-            disabled={pending}
-            required
-            aria-invalid={Boolean(state.errors?.password)}
-            className="px-3.5"
-          />
-          <FieldError message={state.errors?.password} />
+          <Label htmlFor="seller-confirm-password" className="sr-only">Confirmar contraseña</Label>
+          <Input id="seller-confirm-password" name="confirmPassword" type="password" placeholder="Confirma la contraseña" autoComplete="new-password" disabled={pending} required aria-invalid={Boolean(state.errors.confirmPassword)} className="px-3.5" />
+          <FieldError message={state.errors.confirmPassword} />
         </div>
 
-        <div>
-          <Label htmlFor="seller-confirm-password" className="sr-only">
-            Confirmar contraseña
-          </Label>
-          <Input
-            id="seller-confirm-password"
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirma la contraseña"
-            autoComplete="new-password"
-            disabled={pending}
-            required
-            aria-invalid={Boolean(state.errors?.confirmPassword)}
-            className="px-3.5"
-          />
-          <FieldError message={state.errors?.confirmPassword} />
-        </div>
-
-        <Button
-          type="submit"
-          disabled={pending}
-          className="w-full font-normal shadow-none"
-        >
-          {pending ? "Activando acceso..." : "Activar y entrar"}
+        <Button type="submit" disabled={pending} className="w-full font-normal shadow-none">
+          {pending ? "Activando acceso..." : "Activar acceso"}
         </Button>
       </form>
+
+      {tokenMode ? (
+        <button type="button" onClick={onUseManual} className="w-full text-xs text-muted-foreground hover:text-foreground">
+          Usar correo y código manual
+        </button>
+      ) : null}
+      <p className="text-center text-xs leading-5 text-muted-foreground">
+        Si la invitación expiró o ya fue utilizada, solicita un nuevo enlace a tu administrador.
+      </p>
     </div>
   );
+}
+
+function SellerAccessFormController(props: SellerAccessFormProps) {
+  const [manualMode, setManualMode] = useState(!props.actionToken);
+  const activeToken = manualMode ? undefined : props.actionToken;
+  const [state, formAction, pending] = useActionState(
+    submitSellerAccess.bind(null, activeToken),
+    initialSellerAccessState,
+  );
+
+  return (
+    <SellerAccessFormView
+      {...props}
+      state={state}
+      pending={pending}
+      manualMode={manualMode}
+      formAction={formAction}
+      onUseManual={() => setManualMode(true)}
+    />
+  );
+}
+
+export function SellerActivationFormFromUrl() {
+  const searchParams = useSearchParams();
+  const activation = parseSellerActivationParams(searchParams);
+
+  useLayoutEffect(() => {
+    if (!window.location.search) return;
+    cleanSellerActivationUrl(window.history, window.location);
+  }, []);
+
+  return <SellerAccessFormController {...activation} />;
+}
+
+export function SellerAccessForm(props: SellerAccessFormProps) {
+  return <SellerAccessFormController {...props} />;
 }

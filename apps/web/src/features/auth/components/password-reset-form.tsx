@@ -9,7 +9,10 @@ import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { routes } from "@/config/routes";
-import { submitPasswordReset } from "../services/password-reset.client";
+import {
+  submitPasswordReset,
+  type PasswordResetState,
+} from "../services/password-reset.client";
 
 type PasswordResetFormProps = {
   initialEmail?: string;
@@ -30,6 +33,18 @@ export function PasswordResetForm({ initialEmail = "" }: PasswordResetFormProps)
     email: normalizedInitialEmail,
   });
 
+  return <PasswordResetFormView state={state} pending={pending} action={action} />;
+}
+
+export function PasswordResetFormView({
+  state,
+  pending,
+  action,
+}: {
+  state: PasswordResetState;
+  pending: boolean;
+  action?: (formData: FormData) => void;
+}) {
   if (state.phase === "done") {
     return (
       <div className="text-center">
@@ -41,7 +56,7 @@ export function PasswordResetForm({ initialEmail = "" }: PasswordResetFormProps)
   }
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-4" data-testid="password-reset-form">
       <input type="hidden" name="phase" value={state.phase} />
       {state.phase === "confirm" ? <input type="hidden" name="email" value={state.email} /> : null}
       <div className="rounded-xl border border-border bg-muted/35 p-3 text-xs leading-5 text-muted-foreground">
@@ -60,7 +75,7 @@ export function PasswordResetForm({ initialEmail = "" }: PasswordResetFormProps)
         </>
       )}
 
-      <Button type="submit" className="w-full" disabled={pending}>{pending ? "Procesando..." : state.phase === "request" ? "Enviar código" : "Restablecer contraseña"}</Button>
+      <Button type="submit" className="w-full" disabled={pending} aria-busy={pending}>{pending ? "Procesando..." : state.phase === "request" ? "Enviar código" : "Restablecer contraseña"}</Button>
       <Link href={routes.login} className="flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" />Volver al inicio de sesión</Link>
     </form>
   );
