@@ -1,12 +1,16 @@
-"use server";
+"use client";
 
+import { ApiError } from "@multilot/api-client";
 import { z } from "zod";
-import { authService } from "../services/auth.service";
+import { browserHttp } from "@/lib/api/browser-http";
 import {
   confirmPasswordResetSchema,
   requestPasswordResetSchema,
 } from "../schemas/password-reset.schema";
-import { getAuthErrorMessage } from "./auth-action-error";
+import type {
+  ConfirmPasswordResetResponse,
+  RequestPasswordResetResponse,
+} from "../types/auth.types";
 
 export type PasswordResetState = {
   phase: "request" | "confirm" | "done";
@@ -15,12 +19,17 @@ export type PasswordResetState = {
   errors?: Record<string, string[]>;
 };
 
-export const initialPasswordResetState: PasswordResetState = {
-  phase: "request",
-  email: "",
-};
+function errorMessage(
+  error: unknown,
+  fallback: string,
+  messages: Partial<Record<number, string>> = {},
+) {
+  return error instanceof ApiError
+    ? (messages[error.status] ?? error.message)
+    : fallback;
+}
 
-export async function passwordResetAction(
+export async function submitPasswordReset(
   previous: PasswordResetState,
   formData: FormData,
 ): Promise<PasswordResetState> {
@@ -33,13 +42,20 @@ export async function passwordResetAction(
     }
 
     try {
-      const response = await authService.requestPasswordReset(parsed.data);
-      return { phase: "confirm", email: parsed.data.email, message: response.message };
+      const result = await browserHttp<RequestPasswordResetResponse>(
+        "/api/auth/password-reset",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phase: "request", ...parsed.data }),
+        },
+      );
+      return { phase: "confirm", email: parsed.data.email, message: result.message };
     } catch (error) {
       return {
         phase: "request",
         email: parsed.data.email,
-        message: getAuthErrorMessage(error, "No pudimos procesar la solicitud. Intenta nuevamente."),
+        message: errorMessage(error, "No pudimos procesar la solicitud. Intenta nuevamente."),
       };
     }
   }
@@ -55,7 +71,11 @@ export async function passwordResetAction(
   }
 
   try {
-    await authService.confirmPasswordReset(parsed.data);
+    await browserHttp<ConfirmPasswordResetResponse>("/api/auth/password-reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phase: "confirm", ...parsed.data }),
+    });
     return {
       phase: "done",
       email: parsed.data.email,
@@ -65,7 +85,7 @@ export async function passwordResetAction(
     return {
       phase: "confirm",
       email: parsed.data.email,
-      message: getAuthErrorMessage(error, "No pudimos restablecer la contraseña.", {
+      message: errorMessage(error, "No pudimos restablecer la contraseña.", {
         401: "El código es inválido o expiró. Solicita uno nuevo.",
         422: "La nueva contraseña no cumple la política de seguridad.",
         429: "Demasiados intentos. Espera un momento antes de continuar.",

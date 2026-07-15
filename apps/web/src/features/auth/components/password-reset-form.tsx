@@ -9,7 +9,7 @@ import { FieldError } from "@/components/ui/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { routes } from "@/config/routes";
-import { passwordResetAction } from "../actions/password-reset.action";
+import { submitPasswordReset } from "../services/password-reset.client";
 
 type PasswordResetFormProps = {
   initialEmail?: string;
@@ -25,7 +25,7 @@ export function PasswordResetFormFromUrl() {
 
 export function PasswordResetForm({ initialEmail = "" }: PasswordResetFormProps) {
   const normalizedInitialEmail = initialEmail.trim().toLowerCase();
-  const [state, action, pending] = useActionState(passwordResetAction, {
+  const [state, action, pending] = useActionState(submitPasswordReset, {
     phase: "request" as const,
     email: normalizedInitialEmail,
   });
