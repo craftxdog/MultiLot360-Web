@@ -21,6 +21,20 @@ describe("seller activation URL", () => {
     );
   });
 
+  it("normalizes legacy email and code for readonly prefill", () => {
+    assert.deepEqual(
+      parseSellerActivationParams(new URLSearchParams({
+        email: "  SELLER@EXAMPLE.COM ",
+        code: "12-34 56",
+      })),
+      {
+        invalidToken: false,
+        initialEmail: "seller@example.com",
+        initialAccessCode: "123456",
+      },
+    );
+  });
+
   it("cleans query parameters with replaceState instead of navigation", () => {
     const replacements: unknown[][] = [];
     cleanSellerActivationUrl(

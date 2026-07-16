@@ -7,6 +7,7 @@ type OtpCodeInputProps = {
   name: string;
   initialValue?: string;
   disabled?: boolean;
+  readOnly?: boolean;
   error?: boolean;
 };
 
@@ -20,6 +21,7 @@ export function OtpCodeInput({
   name,
   initialValue = "",
   disabled,
+  readOnly,
   error,
 }: OtpCodeInputProps) {
   const [value, setValue] = useState(() => normalizeOtp(initialValue));
@@ -36,7 +38,8 @@ export function OtpCodeInput({
         value={value}
         onChange={(event) => setValue(normalizeOtp(event.target.value))}
         disabled={disabled}
-        className={cn("h-14 w-full rounded-xl border bg-background px-4 text-center font-mono text-xl tracking-[0.7em] text-foreground outline-none transition focus:border-foreground/25", error ? "border-danger/45" : "border-input")}
+        readOnly={readOnly}
+        className={cn("h-14 w-full rounded-xl border bg-background px-4 text-center font-mono text-xl tracking-[0.7em] text-foreground outline-none transition focus:border-foreground/25", readOnly && "cursor-default bg-muted/45", error ? "border-danger/45" : "border-input")}
         aria-label="Código de acceso de 6 dígitos"
         aria-invalid={error}
       />

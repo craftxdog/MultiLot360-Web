@@ -85,20 +85,43 @@ export function SellerAccessFormView({
           </div>
         ) : null}
 
-        {!tokenMode ? (
+        {tokenMode ? (
+          <div className="grid gap-3" data-testid="automatic-invitation-context">
+            <div>
+              <Label htmlFor="verified-invitation-email" className="mb-2 block text-xs text-muted-foreground">Correo de la invitación</Label>
+              <Input
+                id="verified-invitation-email"
+                value="Verificado por enlace seguro"
+                readOnly
+                aria-readonly="true"
+                className="cursor-default bg-muted/45 px-3.5 text-xs"
+              />
+            </div>
+            <div>
+              <Label htmlFor="verified-invitation-code" className="mb-2 block text-xs text-muted-foreground">Código de acceso</Label>
+              <Input
+                id="verified-invitation-code"
+                value="Aplicado automáticamente"
+                readOnly
+                aria-readonly="true"
+                className="cursor-default bg-muted/45 px-3.5 text-xs"
+              />
+            </div>
+          </div>
+        ) : (
           <>
             <div>
               <Label htmlFor="seller-email" className="sr-only">Correo electrónico</Label>
-              <Input id="seller-email" name="email" type="email" placeholder="Correo de la invitación" autoComplete="email" defaultValue={initialEmail} disabled={pending} required aria-invalid={Boolean(state.errors.email)} className="px-3.5" />
+              <Input id="seller-email" name="email" type="email" placeholder="Correo de la invitación" autoComplete="email" defaultValue={initialEmail} disabled={pending} readOnly={Boolean(initialEmail)} required aria-invalid={Boolean(state.errors.email)} className={initialEmail ? "cursor-default bg-muted/45 px-3.5" : "px-3.5"} />
               <FieldError message={state.errors.email} />
             </div>
             <div>
               <div className="mb-2 flex items-center justify-between"><Label className="text-xs text-muted-foreground">Código de acceso</Label><span className="text-xs text-muted-foreground">6 dígitos</span></div>
-              <OtpCodeInput name="accessCode" initialValue={initialAccessCode} disabled={pending} error={Boolean(state.errors.accessCode)} />
+              <OtpCodeInput name="accessCode" initialValue={initialAccessCode} disabled={pending} readOnly={Boolean(initialAccessCode)} error={Boolean(state.errors.accessCode)} />
               <FieldError message={state.errors.accessCode} />
             </div>
           </>
-        ) : null}
+        )}
 
         <div>
           <Label htmlFor="seller-password" className="sr-only">Contraseña</Label>
@@ -124,6 +147,12 @@ export function SellerAccessFormView({
       <p className="text-center text-xs leading-5 text-muted-foreground">
         Si la invitación expiró o ya fue utilizada, solicita un nuevo enlace a tu administrador.
       </p>
+      <div className="border-t border-border pt-4 text-center text-xs text-muted-foreground">
+        ¿Ya activaste tu cuenta?{" "}
+        <Link href={routes.login} className="font-medium text-foreground underline-offset-4 hover:underline">
+          Iniciar sesión
+        </Link>
+      </div>
     </div>
   );
 }
