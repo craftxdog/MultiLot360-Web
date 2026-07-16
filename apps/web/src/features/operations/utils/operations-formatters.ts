@@ -5,5 +5,8 @@ const OPERATION_DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-NI", {
 });
 
 export function formatOperationDateTime(value: string) {
-  return OPERATION_DATE_TIME_FORMATTER.format(new Date(value));
+  return OPERATION_DATE_TIME_FORMATTER.format(new Date(value)).replace(
+    /[\u00a0\u202f]/g,
+    " ",
+  );
 }

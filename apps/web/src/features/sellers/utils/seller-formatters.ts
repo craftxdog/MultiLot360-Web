@@ -7,7 +7,10 @@ const SELLER_DATE_FORMATTER = new Intl.DateTimeFormat("es-NI", {
 export function formatSellerDate(value: string | null) {
   if (!value) return "—";
 
-  return SELLER_DATE_FORMATTER.format(new Date(value));
+  return SELLER_DATE_FORMATTER.format(new Date(value)).replace(
+    /[\u00a0\u202f]/g,
+    " ",
+  );
 }
 
 export function getSellerInitials(name: string) {
