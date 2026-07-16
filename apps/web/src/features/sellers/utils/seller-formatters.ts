@@ -1,10 +1,13 @@
+const SELLER_DATE_FORMATTER = new Intl.DateTimeFormat("es-NI", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "America/Managua",
+});
+
 export function formatSellerDate(value: string | null) {
   if (!value) return "—";
 
-  return new Intl.DateTimeFormat("es-NI", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return SELLER_DATE_FORMATTER.format(new Date(value));
 }
 
 export function getSellerInitials(name: string) {

@@ -16,6 +16,7 @@ import { operationKeys, prizeOptions, prizesOptions, resultsOptions, winningSale
 import { operationsService } from "../services/operations.service";
 import type { WinningSale } from "../types/operations.types";
 import { prizesQuerySchema } from "../utils/operations-query";
+import { formatOperationDateTime } from "../utils/operations-formatters";
 import { OperationDetailDrawer } from "./operation-detail-drawer";
 import { EmptyState, ErrorState, LoadingRows, OperationsShell } from "./operations-shell";
 
@@ -123,7 +124,7 @@ export function PrizesWorkspace() {
                 <span><span className="block text-sm font-medium">{payment.sale.seller.name}</span><span className="block font-mono text-[11px] text-muted-foreground">Venta {payment.saleId}</span></span>
                 <span className="font-mono text-sm">Nº {payment.result.winningNumber}</span>
                 <span className="font-mono text-sm">C$ {money.format(payment.paidAmountMiles * 1000)}</span>
-                <time className="text-xs text-muted-foreground">{new Date(payment.paidAt).toLocaleString("es-NI")}</time>
+                <time className="text-xs text-muted-foreground">{formatOperationDateTime(payment.paidAt)}</time>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
             ))}
@@ -191,7 +192,7 @@ export function PrizesWorkspace() {
             <div><dt className="text-xs text-muted-foreground">Resultado</dt><dd className="mt-1">{detail.data.result.shift.configuration.code} · número {detail.data.result.winningNumber}</dd></div>
             <div><dt className="text-xs text-muted-foreground">Monto pagado</dt><dd className="mt-1 font-mono">C$ {money.format(detail.data.paidAmountMiles * 1000)}</dd></div>
             <div><dt className="text-xs text-muted-foreground">Confirmado por</dt><dd className="mt-1">{detail.data.paidBy?.name ?? detail.data.paidBy?.username ?? "Sistema"}</dd></div>
-            <div><dt className="text-xs text-muted-foreground">Fecha</dt><dd className="mt-1">{new Date(detail.data.paidAt).toLocaleString("es-NI")}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">Fecha</dt><dd className="mt-1">{formatOperationDateTime(detail.data.paidAt)}</dd></div>
           </dl>
         ) : null}
       </OperationDetailDrawer>

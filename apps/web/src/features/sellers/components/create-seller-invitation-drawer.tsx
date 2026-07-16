@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Mail, X } from "lucide-react";
+import type { FormEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field-error";
@@ -50,7 +51,7 @@ export function CreateSellerInvitationDrawer({ context = "seller" }: { context?:
     if (!createInvitation.isPending) close();
   };
 
-  const submit = handleSubmit(async (input) => {
+  const submit = handleSubmit(async (input: CreateSellerInvitationInput) => {
     try {
       await createInvitation.mutateAsync(input);
       reset(defaultValues);
@@ -59,6 +60,22 @@ export function CreateSellerInvitationDrawer({ context = "seller" }: { context?:
       // La mutación presenta el error y conserva el formulario para corregirlo.
     }
   });
+
+  const submitOnce = async (event: FormEvent<HTMLFormElement>) => {
+    const form = event.currentTarget;
+
+    if (form.dataset.submitting === "true") {
+      event.preventDefault();
+      return;
+    }
+
+    form.dataset.submitting = "true";
+    try {
+      await submit(event);
+    } finally {
+      delete form.dataset.submitting;
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -103,7 +120,7 @@ export function CreateSellerInvitationDrawer({ context = "seller" }: { context?:
               </button>
             </header>
 
-            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+            <form onSubmit={submitOnce} className="flex min-h-0 flex-1 flex-col">
               <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
                 <div className="rounded-xl border border-primary/12 bg-primary/4 p-4">
                   <div className="flex gap-3">

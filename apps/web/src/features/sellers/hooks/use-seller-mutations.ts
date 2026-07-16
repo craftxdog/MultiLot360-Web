@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { sellerKeys } from "../queries/seller.queries";
 import { sellersService } from "../services/sellers.service";
 import type { CreateSellerInvitationPayload, DeleteSellerPayload } from "../types/seller.types";
+import { getSellerMutationErrorMessage } from "../utils/seller-mutation-messages";
 
 export function useSellerMutations() {
   const queryClient = useQueryClient();
@@ -20,7 +21,8 @@ export function useSellerMutations() {
           "El vendedor recibió un código y un enlace seguro de activación.",
       });
     },
-    onError: (error) => toast.error(error.message),
+    onError: () =>
+      toast.error(getSellerMutationErrorMessage("create-invitation")),
   });
 
   const resendAccessCode = useMutation({
@@ -31,7 +33,8 @@ export function useSellerMutations() {
         description: "El código anterior dejó de ser válido.",
       });
     },
-    onError: (error) => toast.error(error.message),
+    onError: () =>
+      toast.error(getSellerMutationErrorMessage("resend-access-code")),
   });
 
   const revokeInvitation = useMutation({
