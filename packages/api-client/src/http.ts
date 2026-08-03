@@ -27,6 +27,7 @@ export type ApiEnvelope<T> = {
 
 export type ApiRequestOptions = RequestInit & {
   token?: string;
+  timeoutMs?: number;
 };
 
 type ApiErrorPayload = {
@@ -115,7 +116,11 @@ export function createApiClient({
       headers.set("Authorization", `Bearer ${options.token}`);
     }
 
-    const { token: _token, ...requestOptions } = options;
+    const {
+      token: _token,
+      timeoutMs: requestTimeoutMs = timeoutMs,
+      ...requestOptions
+    } = options;
     let response: Response;
 
     try {
@@ -123,7 +128,7 @@ export function createApiClient({
         ...requestOptions,
         headers,
         cache: requestOptions.cache ?? "no-store",
-        signal: combineSignals(requestOptions.signal, timeoutMs),
+        signal: combineSignals(requestOptions.signal, requestTimeoutMs),
       });
     } catch (error) {
       const timedOut = error instanceof DOMException && error.name === "TimeoutError";

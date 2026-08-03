@@ -7,6 +7,7 @@ export const apiEndpoints = {
     me: "/auth/me",
     requestPasswordReset: "/auth/password/reset/request",
     confirmPasswordReset: "/auth/password/reset/confirm",
+    confirmPasswordResetLink: "/auth/password/reset/confirm-link",
     adminResetPassword: "/auth/password/reset/admin",
     confirmSellerAccess: "/identity-access/sellers/access-code/confirm",
   },

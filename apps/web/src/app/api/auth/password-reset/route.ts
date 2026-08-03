@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ZodError, z } from "zod";
 import {
   confirmPasswordResetSchema,
+  confirmPasswordResetLinkSchema,
   requestPasswordResetSchema,
 } from "@/features/auth/schemas/password-reset.schema";
 import { authService } from "@/features/auth/services/auth.service";
@@ -9,7 +10,7 @@ import { ApiError } from "@/lib/api/http";
 import { isTrustedMutationOrigin } from "@/lib/security/mutation-origin";
 
 const passwordResetPhaseSchema = z.object({
-  phase: z.enum(["request", "confirm"]),
+  phase: z.enum(["request", "confirm", "confirm-link"]),
 }).passthrough();
 
 function response<T>(data: T, status = 200) {
@@ -34,13 +35,13 @@ export async function POST(request: Request) {
       return response(result, 202);
     }
 
-    const input = confirmPasswordResetSchema.parse(payload);
-    const result = await authService.confirmPasswordReset({
-      email: input.email,
-      code: input.code,
-      newPassword: input.newPassword,
-      confirmPassword: input.confirmPassword,
-    });
+    const result = phase === "confirm-link"
+      ? await authService.confirmPasswordResetLink(
+          confirmPasswordResetLinkSchema.parse(payload),
+        )
+      : await authService.confirmPasswordReset(
+          confirmPasswordResetSchema.parse(payload),
+        );
     return response(result);
   } catch (error) {
     const status = error instanceof ZodError

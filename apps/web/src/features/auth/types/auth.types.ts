@@ -91,6 +91,11 @@ export type ConfirmPasswordResetPayload = {
   newPassword: string;
   confirmPassword: string;
 };
+export type ConfirmPasswordResetLinkPayload = {
+  tokenHash: string;
+  newPassword: string;
+  confirmPassword: string;
+};
 export type ConfirmPasswordResetResponse = {
   passwordUpdated: true;
   sessionsRevoked: true;

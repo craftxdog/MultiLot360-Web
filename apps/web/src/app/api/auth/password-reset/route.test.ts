@@ -60,6 +60,29 @@ describe("POST /api/auth/password-reset", () => {
     assert.equal(upstreamRequests[0]?.url, `http://localhost:3000${apiEndpoints.auth.confirmPasswordReset}`);
   });
 
+  it("forwards secure-link confirmation only in the POST body", async () => {
+    const tokenHash = "a".repeat(64);
+    const response = await POST(new Request("https://app.test/api/auth/password-reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: "https://app.test" },
+      body: JSON.stringify({
+        phase: "confirm-link",
+        tokenHash,
+        newPassword: "NuevaClave2026!",
+        confirmPassword: "NuevaClave2026!",
+      }),
+    }));
+
+    assert.equal(response.status, 200);
+    assert.equal(upstreamRequests[0]?.url, `http://localhost:3000${apiEndpoints.auth.confirmPasswordResetLink}`);
+    assert.deepEqual(upstreamRequests[0]?.body, {
+      tokenHash,
+      newPassword: "NuevaClave2026!",
+      confirmPassword: "NuevaClave2026!",
+    });
+    assert.doesNotMatch(upstreamRequests[0]?.url ?? "", /recovery_token|tokenHash/);
+  });
+
   it("rejects cross-origin mutations before contacting the API", async () => {
     const response = await POST(new Request("https://app.test/api/auth/password-reset", {
       method: "POST",

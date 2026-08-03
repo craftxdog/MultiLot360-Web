@@ -86,6 +86,11 @@ describe("authService password reset", () => {
       newPassword: "NuevaClave2026!",
       confirmPassword: "NuevaClave2026!",
     });
+    await authService.confirmPasswordResetLink({
+      tokenHash: "a".repeat(64),
+      newPassword: "NuevaClave2026!",
+      confirmPassword: "NuevaClave2026!",
+    });
 
     assert.deepEqual(
       requests.map(({ url, method, authorization }) => ({
@@ -93,6 +98,8 @@ describe("authService password reset", () => {
           ? apiEndpoints.auth.requestPasswordReset
           : url.endsWith(apiEndpoints.auth.confirmPasswordReset)
             ? apiEndpoints.auth.confirmPasswordReset
+            : url.endsWith(apiEndpoints.auth.confirmPasswordResetLink)
+              ? apiEndpoints.auth.confirmPasswordResetLink
             : url,
         method,
         authorization,
@@ -108,12 +115,22 @@ describe("authService password reset", () => {
           method: "POST",
           authorization: null,
         },
+        {
+          usesEndpoint: apiEndpoints.auth.confirmPasswordResetLink,
+          method: "POST",
+          authorization: null,
+        },
       ],
     );
     assert.deepEqual(requests[0]?.body, { email: "cliente@example.com" });
     assert.deepEqual(requests[1]?.body, {
       email: "cliente@example.com",
       code: "123456",
+      newPassword: "NuevaClave2026!",
+      confirmPassword: "NuevaClave2026!",
+    });
+    assert.deepEqual(requests[2]?.body, {
+      tokenHash: "a".repeat(64),
       newPassword: "NuevaClave2026!",
       confirmPassword: "NuevaClave2026!",
     });

@@ -3,6 +3,7 @@ export const routes = {
   login: "/login",
   signup: "/signup",
   forgotPassword: "/forgot-password",
+  passwordReset: "/restablecer-contrasena",
   sellerActivation: "/activar-vendedor",
 
   dashboard: "/dashboard",

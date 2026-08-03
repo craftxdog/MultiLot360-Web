@@ -7,6 +7,7 @@ import type {
   ConfirmSellerAccessPayload,
   ConfirmSellerAccessResponse,
   ConfirmPasswordResetPayload,
+  ConfirmPasswordResetLinkPayload,
   ConfirmPasswordResetResponse,
   LoginPayload,
   LogoutResponse,
@@ -89,13 +90,26 @@ export const authService = {
   requestPasswordReset(payload: RequestPasswordResetPayload) {
     return http<RequestPasswordResetResponse>(
       apiEndpoints.auth.requestPasswordReset,
-      { method: "POST", body: JSON.stringify(payload) },
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+        // Mail delivery is synchronous in the current API and can exceed the
+        // default request timeout without indicating a functional failure.
+        timeoutMs: 30_000,
+      },
     );
   },
 
   confirmPasswordReset(payload: ConfirmPasswordResetPayload) {
     return http<ConfirmPasswordResetResponse>(
       apiEndpoints.auth.confirmPasswordReset,
+      { method: "POST", body: JSON.stringify(payload) },
+    );
+  },
+
+  confirmPasswordResetLink(payload: ConfirmPasswordResetLinkPayload) {
+    return http<ConfirmPasswordResetResponse>(
+      apiEndpoints.auth.confirmPasswordResetLink,
       { method: "POST", body: JSON.stringify(payload) },
     );
   },
