@@ -198,11 +198,16 @@ La revisión fue de solo lectura; no se modificó la API.
 | ESLint web | Aprobado |
 | TypeScript web | Aprobado |
 | Pruebas cliente API compartido | 1 aprobada, 0 fallidas |
-| Pruebas web | Pendiente de la corrida final de release |
+| Pruebas web | 152 aprobadas, 0 fallidas |
 | Pruebas shell Desktop | 4 aprobadas, 0 fallidas |
 | Pruebas API enfocadas en recuperación (solo lectura) | 25 aprobadas, 0 fallidas |
 | `cargo fmt --check` | Aprobado |
-| Build productivo Next.js | Pendiente de la corrida final de release |
+| Build productivo Next.js | Aprobado, 45 páginas generadas |
+| Unit tests API | 245 aprobadas, 0 fallidas |
+| E2E API | 1 aprobada, 1 suite externa omitida por diseño |
+| SQL multi-tenant y billing en PostgreSQL 16 efímero | 2 suites aprobadas |
+| Build NestJS | Aprobado |
+| Workflows GitHub Actions (`actionlint`) | Web y API aprobados |
 | Build Docker frontend | Aprobado, contexto aprox. 47.4 kB e imagen 79.5 MB |
 | Smoke Docker | Saludable; UID 1001; rutas públicas 200 |
 | BFF password reset en Docker | Ruta presente; body inválido validado con 400, no 404 |
