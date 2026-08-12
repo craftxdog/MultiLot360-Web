@@ -25,7 +25,7 @@ export default async function AppLayout({
 
   const accessToken = await getAccessToken();
   const platformFinance =
-    user.role.name.toUpperCase().includes("ADMIN") && accessToken
+    accessToken
       ? await billingApi
           .transferQueue("EN_REVISION", 1, accessToken)
           .then(() => true)
