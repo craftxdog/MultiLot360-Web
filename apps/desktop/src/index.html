@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./multilot369logo.png" />
     <title>MultiLot 360</title>
     <style>
       :root {
@@ -164,33 +165,6 @@
       </div>
     </main>
 
-    <script>
-      const storageKey = "multilot360.desktop.url";
-      const input = document.querySelector("#server-url");
-      const form = document.querySelector("#connect-form");
-      const message = document.querySelector("#message");
-      const savedUrl = localStorage.getItem(storageKey);
-
-      if (savedUrl) {
-        input.value = savedUrl;
-      }
-
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        message.textContent = "";
-
-        try {
-          const url = new URL(input.value.trim());
-          if (!["https:", "http:"].includes(url.protocol)) {
-            throw new Error("invalid-protocol");
-          }
-
-          localStorage.setItem(storageKey, url.toString());
-          window.location.href = url.toString();
-        } catch {
-          message.textContent = "Escribe una URL válida que comience con https://";
-        }
-      });
-    </script>
+    <script type="module" src="./connection.js"></script>
   </body>
 </html>

@@ -15,15 +15,18 @@ Cada PR o push hacia `develop` y `master` ejecuta:
 2. instalación reproducible con Bun `1.3.11`;
 3. ESLint;
 4. TypeScript;
-5. pruebas unitarias;
-6. build de Next.js.
+5. pruebas del cliente API compartido;
+6. pruebas unitarias de Next.js;
+7. pruebas del shell Desktop;
+8. formato Rust del shell Tauri;
+9. build de Next.js.
 
 Si cualquiera de esos pasos falla, no se publica imagen ni despliegue.
 
 ## Reglas de rama
 
 - Los PR sólo pueden apuntar a `develop` o `master`.
-- `master` debe estar sincronizada con `develop` antes de publicar artefactos de producción.
+- `master` debe contener toda la historia de `develop` antes de publicar artefactos de producción. Se acepta el merge commit normal de una rama `release/*`.
 - Un despliegue manual a producción sólo puede ejecutarse desde `master`.
 - El workflow cancela ejecuciones anteriores de la misma rama para evitar publicaciones antiguas.
 
@@ -57,6 +60,7 @@ La estrategia es intencionalmente ligera para VPS pequeño:
 2. GitHub construye y publica la imagen en GHCR.
 3. GitHub llama a Dokploy por API o webhook secreto.
 4. Dokploy sólo descarga la imagen y reinicia el servicio.
+5. GitHub consulta `/login` hasta confirmar que el frontend publicado responde.
 
 Configura dos GitHub Environments:
 
@@ -70,6 +74,8 @@ En cada environment define estas variables:
   `https://api.tudominio.com/api/v1`.
 - `DOKPLOY_URL` — por ejemplo `https://dokploy.alphaby.cloud`.
 - `DOKPLOY_APPLICATION_ID` — ID de la aplicación Dokploy de ese ambiente.
+- `DEPLOY_HEALTHCHECK_URL` — base pública del frontend; si se omite se usa
+  `NEXT_PUBLIC_APP_URL`.
 
 En cada environment define estos secrets:
 
@@ -128,10 +134,7 @@ Guía Dokploy: [`docs/dokploy-deployment.md`](./dokploy-deployment.md).
 
 ```bash
 bun install --frozen-lockfile
-bun run lint:web
-bun run typecheck:web
-bun run test:web
-bun run build:web
+bun run check:frontend
 docker build -t multilot-360-web .
 ```
 

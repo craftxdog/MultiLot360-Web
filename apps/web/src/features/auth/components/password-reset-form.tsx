@@ -15,8 +15,7 @@ import {
 } from "../services/password-reset.client";
 import {
   cleanPasswordResetUrl,
-  parsePasswordResetFragment,
-  parsePasswordResetParams,
+  parsePasswordResetLocation,
 } from "../utils/password-reset-url";
 
 type PasswordResetFormProps = {
@@ -24,6 +23,7 @@ type PasswordResetFormProps = {
   initialPhase?: "request" | "confirm" | "confirm-link";
   initialMessage?: string;
   recoveryTokenHash?: string;
+  onUseManual?: () => void;
 };
 
 export function PasswordResetFormFromUrl() {
@@ -36,40 +36,60 @@ export function PasswordResetFormFromUrl() {
 
 export function PasswordResetConfirmFormFromUrl() {
   const searchParams = useSearchParams();
-  const { email, validEmail } = parsePasswordResetParams(searchParams);
-  const inspectedUrl = useRef(false);
+  const searchParamsKey = searchParams.toString();
+  const inspectedUrl = useRef("");
   const [initialState, setInitialState] = useState<{
     phase: "request" | "confirm" | "confirm-link";
+    email: string;
     message: string;
     recoveryTokenHash?: string;
   } | null>(null);
 
   useLayoutEffect(() => {
-    if (inspectedUrl.current) return;
-    inspectedUrl.current = true;
+    const inspectCurrentUrl = () => {
+      const sourceUrl = window.location.href;
+      if (inspectedUrl.current === sourceUrl) return;
 
-    const tokenHash = parsePasswordResetFragment(window.location.hash);
+      const {
+        email,
+        validEmail,
+        recoveryTokenHash,
+      } = parsePasswordResetLocation(window.location);
 
-    if (window.location.search || window.location.hash) {
-      cleanPasswordResetUrl(window.history, window.location);
-    }
+      if (window.location.search || window.location.hash) {
+        cleanPasswordResetUrl(window.history, window.location);
+      }
 
-    setInitialState(tokenHash
-      ? {
-          phase: "confirm-link",
-          message: "Enlace verificado localmente. Crea tu nueva contraseña para confirmar el cambio.",
-          recoveryTokenHash: tokenHash,
-        }
-      : validEmail
+      inspectedUrl.current = window.location.href;
+      setInitialState(recoveryTokenHash
         ? {
-            phase: "confirm",
-            message: "Escribe el código temporal recibido. El enlace automático no está disponible o no es válido.",
+            phase: "confirm-link",
+            email,
+            message: "Enlace seguro detectado. Crea tu nueva contraseña para confirmar el cambio.",
+            recoveryTokenHash,
           }
-        : {
-            phase: "request",
-            message: "El enlace no es válido. Escribe tu correo para solicitar uno nuevo.",
-          });
-  }, [validEmail]);
+        : validEmail
+          ? {
+              phase: "confirm",
+              email,
+              message: "Escribe el código temporal recibido. El enlace automático no está disponible o no es válido.",
+            }
+          : {
+              phase: "request",
+              email: "",
+              message: "El enlace no es válido. Escribe tu correo para solicitar uno nuevo.",
+            });
+    };
+
+    inspectCurrentUrl();
+    window.addEventListener("hashchange", inspectCurrentUrl);
+    window.addEventListener("popstate", inspectCurrentUrl);
+
+    return () => {
+      window.removeEventListener("hashchange", inspectCurrentUrl);
+      window.removeEventListener("popstate", inspectCurrentUrl);
+    };
+  }, [searchParamsKey]);
 
   if (!initialState) {
     return <div aria-label="Protegiendo enlace de recuperación" aria-busy="true" />;
@@ -77,10 +97,18 @@ export function PasswordResetConfirmFormFromUrl() {
 
   return (
     <PasswordResetForm
-      initialEmail={email}
+      key={`${initialState.phase}:${initialState.email}`}
+      initialEmail={initialState.email}
       initialPhase={initialState.phase}
       initialMessage={initialState.message}
       recoveryTokenHash={initialState.recoveryTokenHash}
+      onUseManual={initialState.phase === "confirm-link" && Boolean(initialState.email)
+        ? () => setInitialState({
+            phase: "confirm",
+            email: initialState.email,
+            message: "Modo de respaldo: escribe el código temporal incluido en el mismo correo.",
+          })
+        : undefined}
     />
   );
 }
@@ -90,6 +118,7 @@ export function PasswordResetForm({
   initialPhase = "request",
   initialMessage,
   recoveryTokenHash,
+  onUseManual,
 }: PasswordResetFormProps) {
   const normalizedInitialEmail = initialEmail.trim().toLowerCase();
   const submitAction = useCallback(
@@ -103,24 +132,36 @@ export function PasswordResetForm({
     message: initialMessage,
   });
 
-  return <PasswordResetFormView state={state} pending={pending} action={action} />;
+  return (
+    <PasswordResetFormView
+      state={state}
+      pending={pending}
+      action={action}
+      onUseManual={onUseManual}
+    />
+  );
 }
 
 export function PasswordResetFormView({
   state,
   pending,
   action,
+  onUseManual,
 }: {
   state: PasswordResetState;
   pending: boolean;
   action?: (formData: FormData) => void;
+  onUseManual?: () => void;
 }) {
   if (state.phase === "done") {
     return (
-      <div className="text-center">
+      <div className="text-center" role="status" data-testid="password-reset-success">
         <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
         <p className="mt-4 text-sm leading-6 text-muted-foreground">{state.message}</p>
-        <Link href={routes.login} className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:opacity-88">Iniciar sesión</Link>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+          Por seguridad cerramos las sesiones anteriores. Entra nuevamente con tu contraseña nueva.
+        </p>
+        <Link href={routes.login} className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:opacity-88">Continuar al inicio de sesión</Link>
       </div>
     );
   }
@@ -129,7 +170,12 @@ export function PasswordResetFormView({
     <form action={action} className="space-y-4" data-testid="password-reset-form">
       <input type="hidden" name="phase" value={state.phase} />
       {state.phase === "confirm" ? <input type="hidden" name="email" value={state.email} /> : null}
-      <div className="rounded-xl border border-border bg-muted/35 p-3 text-xs leading-5 text-muted-foreground">
+      <div
+        role={state.error ? "alert" : undefined}
+        className={state.error
+          ? "rounded-xl border border-danger/20 bg-danger/8 p-3 text-xs leading-5 text-danger"
+          : "rounded-xl border border-border bg-muted/35 p-3 text-xs leading-5 text-muted-foreground"}
+      >
         {state.message ?? (state.phase === "request"
           ? "Usaremos el endpoint público de recuperación. Te enviaremos un código temporal y la respuesta nunca confirma si la cuenta existe."
           : state.phase === "confirm-link"
@@ -162,6 +208,26 @@ export function PasswordResetFormView({
       )}
 
       <Button type="submit" className="w-full" disabled={pending} aria-busy={pending}>{pending ? "Procesando..." : state.phase === "request" ? "Enviar código" : "Restablecer contraseña"}</Button>
+      {state.phase === "confirm-link" && onUseManual ? (
+        <button
+          type="button"
+          onClick={onUseManual}
+          disabled={pending}
+          className="flex w-full items-center justify-center text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+        >
+          Usar el código temporal del correo
+        </button>
+      ) : null}
+      {state.phase === "confirm" || state.phase === "confirm-link" ? (
+        <Link
+          href={state.email
+            ? `${routes.forgotPassword}?email=${encodeURIComponent(state.email)}`
+            : routes.forgotPassword}
+          className="flex items-center justify-center text-xs font-medium text-muted-foreground transition hover:text-foreground"
+        >
+          Solicitar un enlace y código nuevos
+        </Link>
+      ) : null}
       <Link href={routes.login} className="flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground"><ArrowLeft className="h-3.5 w-3.5" />Volver al inicio de sesión</Link>
     </form>
   );

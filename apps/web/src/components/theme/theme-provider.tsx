@@ -26,17 +26,29 @@ function applyTheme(theme: Theme) {
   document.documentElement.style.colorScheme = resolved;
 }
 
+function getStoredTheme() {
+  try {
+    const storedTheme = window.localStorage.getItem(STORAGE_KEY);
+    return isTheme(storedTheme) ? storedTheme : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === "undefined") return "dark";
-    const storedTheme = window.localStorage.getItem(STORAGE_KEY);
-    return isTheme(storedTheme) ? storedTheme : "dark";
+    return getStoredTheme();
   });
 
   const setTheme = useCallback((nextTheme: Theme) => {
     setThemeState(nextTheme);
-    window.localStorage.setItem(STORAGE_KEY, nextTheme);
     applyTheme(nextTheme);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, nextTheme);
+    } catch {
+      // The selected theme still applies when storage is unavailable.
+    }
   }, []);
 
   useEffect(() => {

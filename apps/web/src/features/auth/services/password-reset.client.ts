@@ -17,6 +17,7 @@ export type PasswordResetState = {
   phase: "request" | "confirm" | "confirm-link" | "done";
   email: string;
   message?: string;
+  error?: boolean;
   errors?: Record<string, string[]>;
 };
 
@@ -58,6 +59,7 @@ export async function submitPasswordReset(
         phase: "request",
         email: parsed.data.email,
         message: errorMessage(error, "No pudimos procesar la solicitud. Intenta nuevamente."),
+        error: true,
       };
     }
   }
@@ -97,6 +99,7 @@ export async function submitPasswordReset(
           422: "La nueva contraseña no cumple la política de seguridad.",
           429: "Demasiados intentos. Espera un momento antes de continuar.",
         }),
+        error: true,
       };
     }
   }
@@ -131,6 +134,7 @@ export async function submitPasswordReset(
         422: "La nueva contraseña no cumple la política de seguridad.",
         429: "Demasiados intentos. Espera un momento antes de continuar.",
       }),
+      error: true,
     };
   }
 }

@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -103,8 +103,8 @@ jobs:
           echo "origin/develop=${DEVELOP_SHA}"
           echo "origin/master=${MASTER_SHA}"
 
-          if [ "${DEVELOP_SHA}" != "${MASTER_SHA}" ]; then
-            echo "::error::master and develop must point to the same commit before publishing production artifacts."
+          if ! git merge-base --is-ancestor "${DEVELOP_SHA}" "${MASTER_SHA}"; then
+            echo "::error::master must contain the complete develop history before publishing production artifacts."
             exit 1
           fi
 
@@ -115,7 +115,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -133,6 +133,20 @@ jobs:
 
       - name: Run web tests
         run: bun run test:web
+
+      - name: Run shared API client tests
+        run: bun run test:api-client
+
+      - name: Run desktop shell tests
+        run: bun run test:desktop
+
+      - name: Setup Rust formatting toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Check desktop Rust formatting
+        run: bun run format:check:desktop
 
       - name: Build web app
         run: bun run build:web
@@ -165,7 +179,7 @@ jobs:
       NEXT_PUBLIC_DESKTOP_RELEASE_URL: ${{ vars.NEXT_PUBLIC_DESKTOP_RELEASE_URL }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Validate public build variables
         run: |
@@ -220,9 +234,11 @@ jobs:
             echo "EOF"
           } >> "${GITHUB_OUTPUT}"
 
-          echo "### GHCR image" >> "${GITHUB_STEP_SUMMARY}"
-          echo "${IMAGE}:${IMAGE_CHANNEL}" >> "${GITHUB_STEP_SUMMARY}"
-          echo "${IMAGE}:${IMMUTABLE_TAG}" >> "${GITHUB_STEP_SUMMARY}"
+          {
+            echo "### GHCR image"
+            echo "${IMAGE}:${IMAGE_CHANNEL}"
+            echo "${IMAGE}:${IMMUTABLE_TAG}"
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -246,6 +262,8 @@ jobs:
             NEXT_PUBLIC_DESKTOP_RELEASE_URL=${{ env.NEXT_PUBLIC_DESKTOP_RELEASE_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
 
   dokploy-deploy:
     name: Deploy with Dokploy
@@ -266,6 +284,7 @@ jobs:
       DOKPLOY_APPLICATION_ID: ${{ vars.DOKPLOY_APPLICATION_ID || secrets.DOKPLOY_APPLICATION_ID }}
       DOKPLOY_API_TOKEN: ${{ secrets.DOKPLOY_API_TOKEN }}
       DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+      DEPLOY_HEALTHCHECK_URL: ${{ vars.DEPLOY_HEALTHCHECK_URL || vars.NEXT_PUBLIC_APP_URL }}
     steps:
       - name: Validate Dokploy configuration
         id: dokploy-config
@@ -323,9 +342,37 @@ jobs:
               --output dokploy-response.json
           fi
 
-          echo "### Dokploy deployment" >> "${GITHUB_STEP_SUMMARY}"
-          echo "Environment: ${DEPLOY_ENV}" >> "${GITHUB_STEP_SUMMARY}"
-          echo "Image: ${IMAGE_REF}" >> "${GITHUB_STEP_SUMMARY}"
+          {
+            echo "### Dokploy deployment"
+            echo "Environment: ${DEPLOY_ENV}"
+            echo "Image: ${IMAGE_REF}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Verify deployed frontend
+        if: steps.dokploy-config.outputs.configured == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOY_HEALTHCHECK_URL}" ]; then
+            echo "::error::Configure DEPLOY_HEALTHCHECK_URL or NEXT_PUBLIC_APP_URL for ${DEPLOY_ENV}."
+            exit 1
+          fi
+
+          HEALTH_URL="${DEPLOY_HEALTHCHECK_URL%/}/login"
+          for attempt in $(seq 1 18); do
+            if curl --fail --location --silent --show-error --output /dev/null "${HEALTH_URL}"; then
+              echo "Frontend healthy at ${HEALTH_URL} after attempt ${attempt}."
+              echo "Healthcheck: ${HEALTH_URL}" >> "${GITHUB_STEP_SUMMARY}"
+              exit 0
+            fi
+
+            echo "Waiting for frontend healthcheck (${attempt}/18)..."
+            sleep 10
+          done
+
+          echo "::error::Frontend did not become healthy at ${HEALTH_URL}."
+          exit 1
 
   desktop-installers:
     name: Build desktop installers
@@ -353,7 +400,7 @@ jobs:
       MULTILOT_DESKTOP_URL: ${{ inputs.desktop_url || vars.MULTILOT_DESKTOP_URL || vars.NEXT_PUBLIC_APP_URL }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Validate desktop target URL
         shell: bash
@@ -442,7 +489,7 @@ jobs:
       MULTILOT_DESKTOP_URL: ${{ inputs.desktop_url || vars.MULTILOT_DESKTOP_URL || vars.NEXT_PUBLIC_APP_URL }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download installer artifacts
         uses: actions/download-artifact@v4

@@ -5,6 +5,8 @@
 - `develop`: integración diaria y origen de ramas `feature/*` y `fix/*`.
 - `master`: estado publicable; sólo recibe integración ya validada desde
   `develop`.
+- `release/<fecha>-<alcance>`: rama temporal congelada desde `develop` para la
+  promoción a producción. Sólo admite correcciones de release.
 - Los cambios se agrupan en commits funcionales pequeños. Una publicación debe
   poder reconstruirse únicamente con el repositorio y `bun.lock`.
 
@@ -33,7 +35,22 @@ target para no compilar dentro del VPS pequeño:
   `latest`.
 - Dokploy se dispara por API token o por webhook secreto.
 - la ejecución manual `desktop` genera instaladores macOS/Windows con Tauri 2 y
-  publica/actualiza el GitHub Release de escritorio.
+publica/actualiza el GitHub Release de escritorio.
+
+## Promoción a producción
+
+1. Confirmar que `develop` está limpio, publicado y verde en GitHub Actions.
+2. Crear `release/<fecha>-<alcance>` desde el SHA exacto de `develop`.
+3. Abrir PR de `release/*` a `master` y esperar `Policy and branch rules` y
+   `Lint, types, tests and build`.
+4. Integrar con merge commit para conservar la evidencia de la promoción.
+5. Esperar imagen `production`, deploy Dokploy y healthcheck público.
+6. Crear tag anotado `web-vYYYY.MM.DD.N` sobre el merge de producción.
+7. Integrar `master` de vuelta en `develop` y eliminar la rama de release.
+
+Si el healthcheck, la API productiva o cualquier smoke funcional falla, no se
+considera publicada la versión aunque el webhook de Dokploy haya respondido
+correctamente.
 
 Más detalle: [`docs/ci-cd.md`](./ci-cd.md).
 Configuración Dokploy: [`docs/dokploy-deployment.md`](./dokploy-deployment.md).
@@ -47,6 +64,8 @@ Configura en GitHub Actions > Variables:
   ejemplo `https://api.tudominio.com/api/v1`.
 - `DOKPLOY_URL`: URL de tu panel Dokploy.
 - `DOKPLOY_APPLICATION_ID`: ID de la aplicación Dokploy de ese ambiente.
+- `DEPLOY_HEALTHCHECK_URL`: base pública que GitHub debe validar después del
+  deploy; usa `NEXT_PUBLIC_APP_URL` como fallback.
 
 Configura en GitHub Actions > Secrets por environment:
 
@@ -63,6 +82,6 @@ deben agregarse `.env*` al repositorio.
 
 ```bash
 bun install --frozen-lockfile
-bun run check:web
+bun run check:frontend
 docker build -t multilot-360-web .
 ```

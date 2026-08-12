@@ -65,6 +65,7 @@ NEXT_PUBLIC_APP_URL=https://app-dev.tudominio.com
 NEXT_PUBLIC_API_URL=https://api-dev.tudominio.com/api/v1
 DOKPLOY_URL=https://dokploy.alphaby.cloud
 DOKPLOY_APPLICATION_ID=<application-id-del-ambiente>
+DEPLOY_HEALTHCHECK_URL=https://app-del-ambiente.example.com
 ```
 
 Secrets por environment, opción recomendada:
@@ -81,6 +82,11 @@ DOKPLOY_WEBHOOK_URL=<url-secreta-del-webhook-deployments>
 
 No guardes el token de Dokploy ni el webhook en archivos `.env`, README o docs
 con valores reales. GitHub los debe cifrar como secrets.
+
+Después del webhook, el workflow consulta
+`DEPLOY_HEALTHCHECK_URL/login` con reintentos. Un `200` confirma que el runtime
+web está disponible; si no responde, el job de despliegue falla y la versión no
+debe etiquetarse ni anunciarse como productiva.
 
 ## Valores públicos actuales
 

@@ -32,9 +32,12 @@ describe("PasswordResetFormView", () => {
     const html = renderToStaticMarkup(createElement(PasswordResetFormView, {
       state: { phase: "confirm-link", email: "user@example.com" },
       pending: false,
+      onUseManual: () => undefined,
     }));
 
     assert.match(html, /Nueva contraseña/);
+    assert.match(html, /Usar el código temporal del correo/);
+    assert.match(html, /Solicitar un enlace y código nuevos/);
     assert.doesNotMatch(html, /name="code"/);
     assert.doesNotMatch(html, /recovery_token|tokenHash/);
   });
@@ -45,11 +48,13 @@ describe("PasswordResetFormView", () => {
         phase: "request",
         email: "user@example.com",
         message: "Intenta nuevamente.",
+        error: true,
       },
       pending: false,
     }));
 
     assert.match(html, /Intenta nuevamente/);
+    assert.match(html, /role="alert"/);
     assert.match(html, /Enviar código/);
   });
 
@@ -64,7 +69,8 @@ describe("PasswordResetFormView", () => {
     }));
 
     assert.match(html, /Contraseña actualizada/);
-    assert.match(html, /Iniciar sesión/);
+    assert.match(html, /Continuar al inicio de sesión/);
+    assert.match(html, /cerramos las sesiones anteriores/);
     assert.doesNotMatch(html, /name="code"/);
   });
 });

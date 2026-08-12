@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   cleanPasswordResetUrl,
   parsePasswordResetFragment,
+  parsePasswordResetLocation,
   parsePasswordResetParams,
 } from "./password-reset-url";
 
@@ -33,6 +34,19 @@ describe("password reset URL", () => {
     );
     assert.equal(parsePasswordResetFragment("#recovery_token=short"), null);
     assert.equal(parsePasswordResetFragment(`#other=${tokenHash}`), null);
+  });
+
+  it("captures email and token from the same navigation before cleanup", () => {
+    const tokenHash = "b".repeat(64);
+
+    assert.deepEqual(parsePasswordResetLocation({
+      search: "?email=USER%40Example.COM",
+      hash: `#recovery_token=${tokenHash}`,
+    }), {
+      email: "user@example.com",
+      validEmail: true,
+      recoveryTokenHash: tokenHash,
+    });
   });
 
   it("removes query parameters without navigation or reload", () => {

@@ -5,6 +5,10 @@ import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useSellerMutations } from "../hooks/use-seller-mutations";
 import { useSellerWorkspaceStore } from "../store/seller-workspace.store";
 import type { SellerInvitation } from "../types/seller.types";
+import {
+  canResendSellerInvitation,
+  getSellerInvitationResendLabel,
+} from "../utils/seller-invitation-actions";
 
 type SellerInvitationActionsProps = {
   invitation: SellerInvitation;
@@ -24,6 +28,9 @@ export function SellerInvitationActions({
   const { resendAccessCode } = useSellerMutations();
   const { data: currentUser } = useCurrentUser();
   const isPending = invitation.status === "PENDIENTE";
+  const canResend = canResendSellerInvitation(invitation.status);
+  const resendLabel = getSellerInvitationResendLabel(invitation.status);
+  const showResendLabel = !compact || resendLabel === "Renovar";
   const canCreate = currentUser?.permissions.includes("usuarios.create") ?? false;
   const canRevoke =
     currentUser?.permissions.some(
@@ -49,14 +56,15 @@ export function SellerInvitationActions({
         <button
           type="button"
           onClick={() => resendAccessCode.mutate(invitation.email)}
-          disabled={!isPending || resendAccessCode.isPending}
+          disabled={!canResend || resendAccessCode.isPending}
           className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-border px-2.5 text-xs text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-35"
-          aria-label={`Reenviar código a ${invitation.email}`}
+          aria-label={`${resendLabel} acceso de ${invitation.email}`}
+          title={`${resendLabel} acceso`}
         >
           <RefreshCcw
             className={`h-3.5 w-3.5 ${resendAccessCode.isPending ? "animate-spin" : ""}`}
           />
-          {compact ? null : "Reenviar"}
+          {showResendLabel ? resendLabel : null}
         </button>
       ) : null}
 

@@ -12,7 +12,12 @@
     "build:desktop": "cd apps/desktop && bun run build",
     "lint:web": "cd apps/web && bun run lint",
     "typecheck:web": "cd apps/web && bun run typecheck",
+    "test:api-client": "bun test packages/api-client/src",
     "test:web": "cd apps/web && bun run test",
-    "check:web": "bun run lint:web && bun run typecheck:web && bun run test:web && bun run build:web"
+    "test:desktop": "cd apps/desktop && bun run test",
+    "format:check:desktop": "cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml -- --check",
+    "check:web": "bun run lint:web && bun run typecheck:web && bun run test:web && bun run build:web",
+    "check:desktop": "bun run test:desktop && bun run build:desktop",
+    "check:frontend": "bun run lint:web && bun run typecheck:web && bun run test:api-client && bun run test:web && bun run test:desktop && bun run format:check:desktop && bun run build:web"
   }
 }

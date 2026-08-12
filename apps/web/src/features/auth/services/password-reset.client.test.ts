@@ -47,6 +47,7 @@ describe("password reset client", () => {
 
     assert.equal(state.phase, "request");
     assert.equal(state.message, "No pudimos procesar la solicitud.");
+    assert.equal(state.error, true);
   });
 
   it("confirms the code and password through the same-origin BFF", async () => {
@@ -96,6 +97,7 @@ describe("password reset client", () => {
 
     assert.equal(state.phase, "confirm");
     assert.equal(state.message, "El código es inválido o expiró. Solicita uno nuevo.");
+    assert.equal(state.error, true);
     assert.doesNotMatch(state.message ?? "", /Detalle interno/);
   });
 
@@ -125,5 +127,27 @@ describe("password reset client", () => {
       confirmPassword: "NuevaClave2026!",
     });
     assert.equal(formData.has("tokenHash"), false);
+  });
+
+  it("keeps an expired secure link generic and recoverable", async () => {
+    globalThis.fetch = (async () => Response.json(
+      { message: "Supabase token detail" },
+      { status: 401 },
+    )) as typeof fetch;
+    const formData = new FormData();
+    formData.set("phase", "confirm-link");
+    formData.set("newPassword", "NuevaClave2026!");
+    formData.set("confirmPassword", "NuevaClave2026!");
+
+    const state = await submitPasswordReset(
+      { phase: "confirm-link", email: "user@example.com" },
+      formData,
+      "a".repeat(64),
+    );
+
+    assert.equal(state.phase, "confirm-link");
+    assert.equal(state.error, true);
+    assert.equal(state.message, "El enlace es inválido o expiró. Solicita uno nuevo.");
+    assert.doesNotMatch(state.message ?? "", /Supabase|token detail/);
   });
 });

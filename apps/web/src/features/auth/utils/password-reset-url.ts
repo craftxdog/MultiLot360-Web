@@ -8,6 +8,10 @@ export type PasswordResetUrlState = {
   validEmail: boolean;
 };
 
+export type PasswordResetLocationState = PasswordResetUrlState & {
+  recoveryTokenHash: string | null;
+};
+
 export function parsePasswordResetParams(
   searchParams: Pick<URLSearchParams, "get">,
 ): PasswordResetUrlState {
@@ -26,6 +30,15 @@ export function parsePasswordResetFragment(hash: string): string | null {
   const result = recoveryTokenHashSchema.safeParse(tokenHash);
 
   return result.success ? result.data : null;
+}
+
+export function parsePasswordResetLocation(
+  location: Pick<Location, "search" | "hash">,
+): PasswordResetLocationState {
+  return {
+    ...parsePasswordResetParams(new URLSearchParams(location.search)),
+    recoveryTokenHash: parsePasswordResetFragment(location.hash),
+  };
 }
 
 export function cleanPasswordResetUrl(
