@@ -14,6 +14,7 @@ const statuses: TransferStatus[] = ["PENDIENTE_EVIDENCIA", "EN_REVISION", "APROB
 export default async function PlatformPage() {
   const token = await getAccessToken();
   let queues: TransferQueues | undefined;
+  const plansPromise = billingApi.plans("BANK_TRANSFER").catch(() => []);
   let accessError: unknown;
 
   try {
@@ -24,13 +25,22 @@ export default async function PlatformPage() {
     accessError = error;
   }
 
-  if (queues) return <PlatformControlCenter queues={queues} />;
+  if (queues) {
+    return <PlatformControlCenter queues={queues} plans={await plansPromise} />;
+  }
+
+  const accessMessage =
+    accessError instanceof ApiError && accessError.isStatus(401, 403, 500)
+      ? "Tu sesión de empresa está activa, pero esta cuenta no tiene autorización global de facturación AlphaBy. Usa una cuenta registrada en platform_admins."
+      : accessError instanceof Error
+        ? accessError.message
+        : "Se requiere un administrador financiero AlphaBy activo.";
 
   return (
     <div className="mx-auto max-w-2xl rounded-3xl border border-border bg-card p-8 text-center">
       <ShieldCheck className="mx-auto h-8 w-8 text-muted-foreground" />
       <h1 className="mt-4 text-2xl font-semibold tracking-tight">Control financiero de plataforma</h1>
-      <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted-foreground">{accessError instanceof Error ? accessError.message : "Se requiere un administrador financiero AlphaBy activo."}</p>
+      <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted-foreground">{accessMessage}</p>
     </div>
   );
 }
