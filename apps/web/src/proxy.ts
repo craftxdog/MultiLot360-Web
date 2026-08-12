@@ -7,6 +7,7 @@ import {
   getAccessCookieOptions,
   getExpiredCookieOptions,
   getRefreshCookieOptions,
+  getTenantCookieOptions,
 } from "@/lib/auth/cookies";
 import { shouldRefreshAccessToken } from "@/lib/auth/jwt";
 
@@ -35,6 +36,8 @@ const protectedRoutes = [
   routes.parameters,
   routes.audit,
   routes.settings,
+  routes.subscription,
+  routes.platform,
 ];
 
 type RequestSession = {
@@ -65,7 +68,8 @@ async function getRequestSession(request: NextRequest): Promise<RequestSession> 
   }
 
   try {
-    const session = await refreshSession(refreshToken);
+    const tenant = request.cookies.get(authCookieNames.tenant)?.value;
+    const session = await refreshSession(refreshToken, tenant);
 
     request.cookies.set(authCookieNames.access, session.accessToken);
     request.cookies.set(authCookieNames.refresh, session.refreshToken);
@@ -92,6 +96,16 @@ function syncSessionCookies(response: NextResponse, session: RequestSession) {
       session.refreshedSession.accessToken,
       getAccessCookieOptions(session.refreshedSession.expiresIn),
     );
+    const tenantSelector =
+      session.refreshedSession.user.tenant?.id ??
+      session.refreshedSession.user.tenant?.slug;
+    if (tenantSelector) {
+      response.cookies.set(
+        authCookieNames.tenant,
+        tenantSelector,
+        getTenantCookieOptions(),
+      );
+    }
     response.cookies.set(
       authCookieNames.refresh,
       session.refreshedSession.refreshToken,
@@ -102,6 +116,7 @@ function syncSessionCookies(response: NextResponse, session: RequestSession) {
   if (session.shouldClear) {
     response.cookies.set(authCookieNames.access, "", getExpiredCookieOptions());
     response.cookies.set(authCookieNames.refresh, "", getExpiredCookieOptions());
+    response.cookies.set(authCookieNames.tenant, "", getExpiredCookieOptions());
   }
 
   return response;

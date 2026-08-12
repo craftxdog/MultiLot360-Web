@@ -1,7 +1,13 @@
 import type { NavigationGroup, NavigationItem } from "@/config/navigation";
 import type { AuthUser } from "@/features/auth/types/auth.types";
 
-export function canAccessItem(user: AuthUser, item: NavigationItem) {
+export function canAccessItem(
+  user: AuthUser,
+  item: NavigationItem,
+  context: { platformFinance?: boolean } = {},
+) {
+  if (item.platformOnly && !context.platformFinance) return false;
+  if (item.ownerOnly && !user.tenant?.isOwner) return false;
   if (item.anyPermissions?.length) {
     return item.anyPermissions.some((permission) =>
       user.permissions.includes(permission),
@@ -18,11 +24,12 @@ export function canAccessItem(user: AuthUser, item: NavigationItem) {
 export function filterNavigationByPermissions(
   user: AuthUser,
   groups: NavigationGroup[],
+  context: { platformFinance?: boolean } = {},
 ) {
   return groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => canAccessItem(user, item)),
+      items: group.items.filter((item) => canAccessItem(user, item, context)),
     }))
     .filter((group) => group.items.length > 0);
 }

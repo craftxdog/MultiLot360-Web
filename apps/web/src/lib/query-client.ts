@@ -3,7 +3,7 @@ import {
   QueryCache,
   QueryClient,
 } from "@tanstack/react-query";
-import { ApiError } from "@/lib/api/http";
+import { ApiError } from "@multilot/api-client";
 import { routes } from "@/config/routes";
 
 function isUnauthorized(error: unknown) {

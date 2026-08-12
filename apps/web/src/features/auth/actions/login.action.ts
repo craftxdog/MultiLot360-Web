@@ -16,6 +16,7 @@ export async function loginAction(
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
+    tenant: formData.get("tenant"),
   });
 
   if (!parsed.success) {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, EyeOff, KeyRound, LifeBuoy, Store } from "lucide-react";
+import { Building2, CheckCircle2, Eye, EyeOff, KeyRound, LifeBuoy, Store } from "lucide-react";
 import { useActionState, useState } from "react";
 import { routes } from "@/config/routes";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,13 @@ import { SellerAccessForm } from "./seller-access-form";
 
 type LoginFormProps = {
   next?: string;
+  initialTenant?: string;
+  signupSuccess?: boolean;
 };
 
 type LoginMode = "credentials" | "seller-access";
 
-export function LoginForm({ next }: LoginFormProps) {
+export function LoginForm({ next, initialTenant, signupSuccess }: LoginFormProps) {
   const [mode, setMode] = useState<LoginMode>("credentials");
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -70,6 +72,13 @@ export function LoginForm({ next }: LoginFormProps) {
         <form action={formAction} className="space-y-4">
           {next ? <input name="next" type="hidden" value={next} /> : null}
 
+          {signupSuccess ? (
+            <div role="status" className="flex gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-3.5 py-3 text-sm leading-5 text-emerald-700 dark:text-emerald-300">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <p>Empresa registrada. Verifica tu correo y entra para generar el primer documento de cobro.</p>
+            </div>
+          ) : null}
+
           {state.message ? (
             <div
               role="alert"
@@ -98,6 +107,27 @@ export function LoginForm({ next }: LoginFormProps) {
               className="mt-2 px-3.5"
             />
             <FieldError message={state.errors?.email} />
+          </div>
+
+          <div>
+            <Label htmlFor="tenant" className="text-xs text-muted-foreground">
+              Empresa <span className="font-normal opacity-70">(si tu cuenta tiene varias)</span>
+            </Label>
+            <div className="relative mt-2">
+              <Building2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="tenant"
+                name="tenant"
+                defaultValue={initialTenant}
+                placeholder="mi-empresa"
+                autoComplete="organization"
+                autoCapitalize="none"
+                disabled={pending}
+                aria-invalid={Boolean(state.errors?.tenant)}
+                className="pl-10"
+              />
+            </div>
+            <FieldError message={state.errors?.tenant} />
           </div>
 
           <div>
@@ -157,6 +187,13 @@ export function LoginForm({ next }: LoginFormProps) {
               </p>
             </div>
           </div>
+
+          <p className="text-center text-xs text-muted-foreground">
+            ¿Nueva empresa?{" "}
+            <Link href={routes.signup} className="font-medium text-foreground underline decoration-border underline-offset-4">
+              Ver planes y crear acceso
+            </Link>
+          </p>
         </form>
       )}
     </div>

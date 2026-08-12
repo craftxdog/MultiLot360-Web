@@ -42,6 +42,26 @@ describe("normalizeAuthMe", () => {
     assert.equal(result.user.seller?.id, "seller-1");
     assert.equal(result.user.seller?.name, "Vendedor Uno");
   });
+
+  it("preserves the selected tenant and ownership returned by auth/me", () => {
+    const result = normalizeAuthMe({
+      user: {
+        id: "user-1",
+        tenantId: "a438c80e-ec4a-4f57-8a4f-f822aac99501",
+        tenantSlug: "loteria-central",
+        membershipId: "80130380-f708-4a3d-a705-3dd2050ff0be",
+        isOwner: true,
+      },
+    });
+
+    assert.deepEqual(result.user.tenant, {
+      id: "a438c80e-ec4a-4f57-8a4f-f822aac99501",
+      slug: "loteria-central",
+      name: "loteria-central",
+      membershipId: "80130380-f708-4a3d-a705-3dd2050ff0be",
+      isOwner: true,
+    });
+  });
 });
 
 describe("authService password reset", () => {

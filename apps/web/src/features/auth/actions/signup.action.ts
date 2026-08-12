@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { routes } from "@/config/routes";
-import { setSessionCookies } from "@/lib/auth/session";
 import { signupSchema } from "../schemas/signup.schema";
 import { authService } from "../services/auth.service";
 import { getAuthErrorMessage } from "./auth-action-error";
@@ -16,6 +15,11 @@ export async function signupAction(
     email: formData.get("email"),
     username: formData.get("username"),
     name: formData.get("name"),
+    companyName: formData.get("companyName"),
+    companySlug: formData.get("companySlug"),
+    priceId: formData.get("priceId"),
+    paymentMethod: formData.get("paymentMethod"),
+    timezone: formData.get("timezone"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
   });
@@ -34,10 +38,13 @@ export async function signupAction(
       username: parsed.data.username,
       name: parsed.data.name,
       password: parsed.data.password,
+      companyName: parsed.data.companyName,
+      companySlug: parsed.data.companySlug,
+      priceId: parsed.data.priceId,
+      paymentMethod: parsed.data.paymentMethod,
+      timezone: parsed.data.timezone,
     };
-    const session = await authService.signup(payload);
-
-    await setSessionCookies(session);
+    await authService.signup(payload);
   } catch (error) {
     return {
       ok: false,
@@ -47,11 +54,14 @@ export async function signupAction(
         {
           403: "El registro inicial está deshabilitado en la API.",
           409: "Ya existe una cuenta con ese correo o usuario.",
+          429: "Se alcanzó el límite de altas. Espera un momento antes de intentar nuevamente.",
         },
       ),
       errors: {},
     };
   }
 
-  redirect(routes.dashboard);
+  redirect(
+    `${routes.login}?signup=success&tenant=${encodeURIComponent(parsed.data.companySlug)}`,
+  );
 }

@@ -9,6 +9,8 @@ import { authKeys } from "@/features/auth/queries/auth.queries";
 import { filterNavigationByPermissions } from "@/lib/auth/permissions";
 import { getServerQueryClient } from "@/lib/query-server";
 import { RealtimeProvider } from "@/features/realtime/components/realtime-provider";
+import { billingApi } from "@/features/billing/server/billing-api";
+import { getAccessToken } from "@/lib/auth/session";
 
 export default async function AppLayout({
   children,
@@ -21,7 +23,17 @@ export default async function AppLayout({
     redirect(`${routes.login}?reauth=1`);
   }
 
-  const visibleGroups = filterNavigationByPermissions(user, navigationGroups);
+  const accessToken = await getAccessToken();
+  const platformFinance =
+    user.role.name.toUpperCase().includes("ADMIN") && accessToken
+      ? await billingApi
+          .transferQueue("EN_REVISION", 1, accessToken)
+          .then(() => true)
+          .catch(() => false)
+      : false;
+  const visibleGroups = filterNavigationByPermissions(user, navigationGroups, {
+    platformFinance,
+  });
   const queryClient = getServerQueryClient();
 
   queryClient.setQueryData(authKeys.currentUser(), user);

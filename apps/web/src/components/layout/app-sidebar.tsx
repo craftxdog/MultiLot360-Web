@@ -101,7 +101,7 @@ export function AppSidebar({ groups }: AppSidebarProps) {
                 {displayName}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                {user?.role.name ?? "Usuario"}
+                {user?.tenant?.name ?? user?.role.name ?? "Usuario"}
               </p>
             </div>
           </div>

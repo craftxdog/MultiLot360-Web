@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, ChevronDown, LogOut, Settings, ShieldCheck, Users } from "lucide-react";
+import { CheckCircle2, ChevronDown, CreditCard, LogOut, Settings, ShieldCheck, Users } from "lucide-react";
 import { routes } from "@/config/routes";
 import { logoutAction } from "@/features/auth/actions/logout.action";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -70,6 +70,7 @@ export function UserMenu() {
           <div className="p-2">
             {user && ["vendedores.read", "usuarios.read"].some((permission) => user.permissions.includes(permission)) ? <Link role="menuitem" href={routes.sellers} onClick={() => setOpen(false)} className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"><Users className="h-4 w-4" />Vendedores y accesos</Link> : null}
             {user?.permissions.includes("parametros.read") ? <Link role="menuitem" href={routes.parameters} onClick={() => setOpen(false)} className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"><Settings className="h-4 w-4" />Parámetros</Link> : null}
+            {user?.tenant?.isOwner ? <Link role="menuitem" href={routes.subscription} onClick={() => setOpen(false)} className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"><CreditCard className="h-4 w-4" />Suscripción y facturación</Link> : null}
             <form action={logoutAction}>
               <button role="menuitem" type="submit" className="flex h-10 w-full items-center gap-3 rounded-xl px-3 text-sm text-danger hover:bg-danger/10"><LogOut className="h-4 w-4" />Cerrar sesión</button>
             </form>

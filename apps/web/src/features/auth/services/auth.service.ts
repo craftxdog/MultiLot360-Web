@@ -15,6 +15,7 @@ import type {
   RequestPasswordResetPayload,
   RequestPasswordResetResponse,
   SignupPayload,
+  SignupResponse,
 } from "../types/auth.types";
 
 export function normalizeAuthMe(payload: AuthMeApiResponse): AuthMeResponse {
@@ -25,7 +26,7 @@ export function normalizeAuthMe(payload: AuthMeApiResponse): AuthMeResponse {
       id: user.id,
       authUserId: user.authUserId ?? null,
       username: user.username ?? "usuario",
-      name: null,
+      name: typeof user.name === "string" ? user.name : null,
       active: user.active ?? true,
       role: {
         id: user.roleId ?? "unknown",
@@ -33,6 +34,17 @@ export function normalizeAuthMe(payload: AuthMeApiResponse): AuthMeResponse {
       },
       modules: user.modules ?? [],
       permissions: user.permissions ?? [],
+      ...(user.tenantId && user.tenantSlug && user.membershipId
+        ? {
+            tenant: {
+              id: user.tenantId,
+              slug: user.tenantSlug,
+              name: user.tenantName ?? user.tenantSlug,
+              membershipId: user.membershipId,
+              isOwner: user.isOwner ?? false,
+            },
+          }
+        : {}),
       ...(payload.seller ? { seller: payload.seller } : {}),
     },
     ...(payload.seller ? { seller: payload.seller } : {}),
@@ -48,7 +60,7 @@ export const authService = {
   },
 
   signup(payload: SignupPayload) {
-    return http<AuthSession>(apiEndpoints.auth.signup, {
+    return http<SignupResponse>(apiEndpoints.billing.signup, {
       method: "POST",
       body: JSON.stringify(payload),
     });

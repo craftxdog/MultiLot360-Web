@@ -9,6 +9,7 @@ type AuthShellProps = {
   title: string;
   description: string;
   children: ReactNode;
+  wide?: boolean;
 };
 
 export function AuthShell({
@@ -16,6 +17,7 @@ export function AuthShell({
   title,
   description,
   children,
+  wide = false,
 }: AuthShellProps) {
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -38,7 +40,7 @@ export function AuthShell({
             <span className="text-sm text-foreground">MultiLot 360</span>
           </div>
 
-          <MotionReveal className="w-full max-w-md" delay={0.04}>
+          <MotionReveal className={wide ? "w-full max-w-2xl" : "w-full max-w-md"} delay={0.04}>
             <div className="mb-8 text-center">
               <p className="mb-4 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 {eyebrow}

@@ -15,6 +15,8 @@ import {
   Ticket,
   Trophy,
   UsersRound,
+  Building2,
+  CreditCard,
 } from "lucide-react";
 import type { NavigationIcon } from "@/config/navigation";
 
@@ -40,6 +42,8 @@ const icons = {
   ticket: Ticket,
   trophy: Trophy,
   users: UsersRound,
+  building: Building2,
+  "credit-card": CreditCard,
 } satisfies Record<NavigationIcon, React.ComponentType<{ className?: string; strokeWidth?: number }>>;
 
 export function NavigationIcon({ name, className }: NavigationIconProps) {

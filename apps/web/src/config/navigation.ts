@@ -16,7 +16,9 @@ export type NavigationIcon =
   | "sliders"
   | "ticket"
   | "trophy"
-  | "users";
+  | "users"
+  | "building"
+  | "credit-card";
 
 export type NavigationItem = {
   title: string;
@@ -25,6 +27,8 @@ export type NavigationItem = {
   permission?: string;
   anyPermissions?: readonly string[];
   badge?: string;
+  ownerOnly?: boolean;
+  platformOnly?: boolean;
 };
 
 export type NavigationGroup = {
@@ -33,6 +37,24 @@ export type NavigationGroup = {
 };
 
 export const navigationGroups: NavigationGroup[] = [
+  {
+    title: "SaaS",
+    items: [
+      {
+        title: "Suscripción",
+        href: routes.subscription,
+        icon: "credit-card",
+        ownerOnly: true,
+      },
+      {
+        title: "Centro AlphaBy",
+        href: routes.platform,
+        icon: "building",
+        platformOnly: true,
+        badge: "Control",
+      },
+    ],
+  },
   {
     title: "Operación",
     items: [

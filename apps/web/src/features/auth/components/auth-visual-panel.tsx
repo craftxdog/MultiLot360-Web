@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 
 const messages = [
   {
-    eyebrow: "Operación conectada",
-    title: "Controla cada turno sin perder de vista los detalles.",
-    description: "Vendedores, ventas y sorteos se mantienen sincronizados desde una sola sesión segura.",
+    eyebrow: "SaaS multiempresa",
+    title: "Cada negocio opera en su propio espacio protegido.",
+    description: "Tenants aislados, suscripción integrada y permisos precisos para crecer sin mezclar operaciones.",
   },
   {
     eyebrow: "Decisiones claras",
@@ -22,7 +22,7 @@ const messages = [
   },
 ];
 
-const capabilities = ["Accesos por rol", "Trazabilidad operativa", "Sesiones protegidas"];
+const capabilities = ["Aislamiento por tenant", "Facturación SaaS", "Accesos por rol"];
 
 export function AuthVisualPanel() {
   const reduceMotion = useReducedMotion();

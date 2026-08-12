@@ -1,7 +1,6 @@
 export const apiEndpoints = {
   auth: {
     login: "/auth/login",
-    signup: "/auth/signup",
     refresh: "/auth/refresh",
     logout: "/auth/logout",
     me: "/auth/me",
@@ -10,5 +9,14 @@ export const apiEndpoints = {
     confirmPasswordResetLink: "/auth/password/reset/confirm-link",
     adminResetPassword: "/auth/password/reset/admin",
     confirmSellerAccess: "/identity-access/sellers/access-code/confirm",
+  },
+  billing: {
+    plans: "/billing/plans",
+    signup: "/billing/signup",
+    portal: "/billing/portal",
+    initialInvoice: "/billing/portal/invoices/initial",
+    paypalCheckout: "/billing/portal/paypal/checkout",
+    transfers: "/billing/portal/transfers",
+    adminTransfers: "/billing/admin/transfers",
   },
 } as const;

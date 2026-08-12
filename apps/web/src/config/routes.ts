@@ -24,4 +24,6 @@ export const routes = {
   roles: "/roles",
   audit: "/auditoria",
   settings: "/ajustes",
+  subscription: "/suscripcion",
+  platform: "/plataforma",
 } as const;

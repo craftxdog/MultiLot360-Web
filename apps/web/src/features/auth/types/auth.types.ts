@@ -3,6 +3,14 @@ export type AuthRole = {
   name: string;
 };
 
+export type TenantContext = {
+  id: string;
+  slug: string;
+  name: string;
+  membershipId: string;
+  isOwner: boolean;
+};
+
 export type AuthUser = {
   id: string;
   authUserId: string | null;
@@ -12,6 +20,7 @@ export type AuthUser = {
   role: AuthRole;
   modules: string[];
   permissions: string[];
+  tenant?: TenantContext;
   seller?: SellerContext;
 };
 
@@ -40,12 +49,19 @@ export type AuthMeResponse = {
 export type AuthMeApiUser = {
   id: string;
   authUserId?: string | null;
+  email?: string | null;
   username?: string;
+  name?: string | null;
   roleId?: string;
   roleName?: string;
   active?: boolean;
   modules?: string[];
   permissions?: string[];
+  tenantId?: string;
+  tenantSlug?: string;
+  tenantName?: string;
+  membershipId?: string;
+  isOwner?: boolean;
 };
 
 export type AuthMeApiResponse = {
@@ -56,6 +72,7 @@ export type AuthMeApiResponse = {
 export type LoginPayload = {
   email: string;
   password: string;
+  tenant?: string;
 };
 
 export type SignupPayload = {
@@ -63,6 +80,21 @@ export type SignupPayload = {
   username: string;
   name: string;
   password: string;
+  companyName: string;
+  companySlug: string;
+  priceId: string;
+  paymentMethod: "BANK_TRANSFER" | "PAYPAL" | "DEVELOPMENT";
+  timezone: string;
+};
+
+export type SignupResponse = {
+  onboardingId: string;
+  profileId: string;
+  state: "PENDING_EMAIL_VERIFICATION";
+  tenantState: "PENDIENTE_PAGO";
+  paymentMethod: SignupPayload["paymentMethod"];
+  emailVerificationRequired: boolean;
+  next: string;
 };
 
 export type LogoutResponse = {
@@ -81,6 +113,7 @@ export type ConfirmSellerAccessResponse = {
 
 export type RefreshSessionPayload = {
   refreshToken: string;
+  tenant?: string;
 };
 
 export type RequestPasswordResetPayload = { email: string };

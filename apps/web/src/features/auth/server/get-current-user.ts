@@ -6,6 +6,7 @@ import {
   clearSessionCookies,
   getAccessToken,
   getRefreshToken,
+  getTenantSelector,
   setSessionCookies,
 } from "@/lib/auth/session";
 import { authService } from "../services/auth.service";
@@ -51,7 +52,7 @@ export async function getCurrentUserWithRefresh() {
   }
 
   try {
-    const session = await refreshSession(refreshToken);
+    const session = await refreshSession(refreshToken, await getTenantSelector());
 
     await setSessionCookies(session);
 

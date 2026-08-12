@@ -45,6 +45,7 @@ export function DashboardWorkspace() {
         </div>
         <div className="grid gap-2 rounded-2xl border border-border bg-background/60 p-3 text-sm sm:min-w-64">
           <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Rol</span><span className="font-medium text-foreground">{user?.role.name ?? "—"}</span></div>
+          <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Empresa</span><span className="max-w-36 truncate font-medium text-foreground">{user?.tenant?.name ?? "—"}</span></div>
           <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Módulos</span><span className="font-mono text-foreground">{user?.modules.length ?? 0}</span></div>
           <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Permisos</span><span className="font-mono text-foreground">{user?.permissions.length ?? 0}</span></div>
         </div>

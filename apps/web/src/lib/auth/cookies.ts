@@ -1,6 +1,7 @@
 export const authCookieNames = {
   access: process.env.AUTH_ACCESS_COOKIE ?? "ml_access_token",
   refresh: process.env.AUTH_REFRESH_COOKIE ?? "ml_refresh_token",
+  tenant: process.env.AUTH_TENANT_COOKIE ?? "ml_tenant_id",
 } as const;
 
 const sharedCookieOptions = {
@@ -19,6 +20,13 @@ export function getAccessCookieOptions(expiresIn: number) {
 }
 
 export function getRefreshCookieOptions() {
+  return {
+    ...sharedCookieOptions,
+    maxAge: 60 * 60 * 24 * 30,
+  };
+}
+
+export function getTenantCookieOptions() {
   return {
     ...sharedCookieOptions,
     maxAge: 60 * 60 * 24 * 30,

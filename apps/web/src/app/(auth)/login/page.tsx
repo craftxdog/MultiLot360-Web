@@ -6,6 +6,8 @@ import { LoginForm } from "@/features/auth/components/login-form";
 type LoginPageProps = {
   searchParams?: Promise<{
     next?: string;
+    tenant?: string;
+    signup?: string;
   }>;
 };
 
@@ -17,7 +19,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       title="Bienvenido a MultiLot"
       description="Accede al centro operativo con tu cuenta o activa una invitación de vendedor."
     >
-      <LoginForm next={params?.next} />
+      <LoginForm
+        next={params?.next}
+        initialTenant={params?.tenant}
+        signupSuccess={params?.signup === "success"}
+      />
       <AuthDesktopInstallCard />
     </AuthShell>
   );
