@@ -8,6 +8,7 @@
 - [ ] Corrí `bun run typecheck:web`
 - [ ] Corrí `bun run test:web`
 - [ ] Corrí `bun run build:web`
+- [ ] Corrí `bun run test:e2e:web` después del build
 - [ ] Revisé que no se expongan secretos, tokens ni payloads técnicos en UI
 
 ## Reglas de entrega

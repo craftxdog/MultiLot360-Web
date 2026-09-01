@@ -14,6 +14,7 @@
     "typecheck:web": "cd apps/web && bun run typecheck",
     "test:api-client": "bun test packages/api-client/src",
     "test:web": "cd apps/web && bun run test",
+    "test:e2e:web": "cd apps/web && bun run test:e2e",
     "test:desktop": "cd apps/desktop && bun run test",
     "format:check:desktop": "cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml -- --check",
     "check:web": "bun run lint:web && bun run typecheck:web && bun run test:web && bun run build:web",

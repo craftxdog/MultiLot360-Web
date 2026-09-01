@@ -83,5 +83,7 @@ deben agregarse `.env*` al repositorio.
 ```bash
 bun install --frozen-lockfile
 bun run check:frontend
+bunx playwright install chromium
+bun run test:e2e:web
 docker build -t multilot-360-web .
 ```
