@@ -41,7 +41,7 @@ export function LoginForm({ next, initialTenant, signupSuccess }: LoginFormProps
           onClick={() => setMode("credentials")}
           aria-pressed={mode === "credentials"}
           className={cn(
-            "flex h-9 items-center justify-center gap-2 rounded-lg text-xs transition",
+            "flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2 text-[11px] leading-none transition sm:gap-2 sm:text-xs",
             mode === "credentials"
               ? "bg-card text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground",
@@ -55,7 +55,7 @@ export function LoginForm({ next, initialTenant, signupSuccess }: LoginFormProps
           onClick={() => setMode("seller-access")}
           aria-pressed={mode === "seller-access"}
           className={cn(
-            "flex h-9 items-center justify-center gap-2 rounded-lg text-xs transition",
+            "flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2 text-[11px] leading-none transition sm:gap-2 sm:text-xs",
             mode === "seller-access"
               ? "bg-card text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground",

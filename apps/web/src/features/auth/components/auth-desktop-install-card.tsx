@@ -87,57 +87,58 @@ export function AuthDesktopInstallCard() {
   return (
     <section className="mt-5 rounded-2xl border border-border bg-background/70 p-4">
       <div className="flex items-start gap-3">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-border bg-card shadow-sm">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-card shadow-sm">
           <Image
             alt="MultiLot 360"
-            className="h-8 w-8 object-contain"
-            height={32}
+            className="h-7 w-7 object-contain"
+            height={28}
             src="/multilot369logo.png"
-            width={32}
+            width={28}
           />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-medium text-foreground">
+          <h2 className="text-sm font-medium leading-5 text-foreground">
             MultiLot 360 para escritorio
           </h2>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Descarga el instalador nativo para macOS o Windows. Abre tu
-            operación en una ventana propia y, si el release no trae URL fija,
-            te pedirá la dirección del sistema al iniciar.
+          <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+            Instala la aplicación y trabaja en una ventana independiente.
           </p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
-            {desktopInstallers.map((installer) => {
-              const Icon = installer.icon;
-
-              return (
-                <a
-                  className="inline-flex min-h-9 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-medium text-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
-                  href={installer.href}
-                  key={installer.label}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {installer.label}
-                </a>
-              );
-            })}
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            className="mt-3 h-9 gap-2"
-            disabled={installed || !prompt}
-            onClick={install}
-          >
-            <Download className="h-3.5 w-3.5" />
-            {installed
-              ? "Web instalada"
-              : prompt
-                ? "Instalar web/PWA"
-                : "Web/PWA disponible desde navegador"}
-          </Button>
         </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {desktopInstallers.map((installer) => {
+          const Icon = installer.icon;
+
+          return (
+            <a
+              className="inline-flex h-[52px] items-center justify-center gap-2 rounded-xl border border-border bg-card px-2.5 text-center text-xs font-medium leading-4 text-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
+              href={installer.href}
+              key={installer.label}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <Icon className="h-3.5 w-3.5 shrink-0" />
+              <span>{installer.label}</span>
+            </a>
+          );
+        })}
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-[52px] gap-2 px-2.5 text-center text-xs leading-4"
+          disabled={installed || !prompt}
+          onClick={install}
+        >
+          <Download className="h-3.5 w-3.5 shrink-0" />
+          <span>
+            {installed
+              ? "PWA instalada"
+              : prompt
+                ? "Instalar PWA"
+                : "PWA en navegador"}
+          </span>
+        </Button>
       </div>
     </section>
   );
