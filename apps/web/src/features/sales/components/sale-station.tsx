@@ -79,7 +79,7 @@ export function SaleStation() {
         <p className="text-xs font-medium text-muted-foreground">Turno de venta</p>
         {isAdmin ? canReadShifts ? <SalesSelect className="mt-2" ariaLabel="Turno de venta" value={effectiveShift?.id ?? ""} onChange={(value) => selectShift(value || null)} options={[{ value: "", label: shifts.isLoading || now === undefined ? "Buscando turno actual…" : "No hay turno disponible" }, ...saleableShifts.map((shift) => ({ value: shift.id, label: formatSalesShiftLabel(shift) }))]} /> : <p className="mt-2 rounded-xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground">Necesitas permiso para listar turnos antes de vender como administrador.</p> : <div className="mt-2 flex min-h-11 items-center gap-3 rounded-xl border border-border bg-muted/30 px-4"><LockKeyhole className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /><div><p className="text-sm font-medium text-foreground">{effectiveShift ? formatSalesShiftLabel(effectiveShift) : shifts.isLoading || now === undefined ? "Buscando turno actual…" : "Sin turno de venta"}</p><p className="text-[10px] text-muted-foreground">Se actualiza automáticamente según la hora de Managua.</p></div></div>}
         {!canReadShifts ? <p className="mt-2 text-xs text-danger">El rol necesita permiso `turnos.read` para vender con asignación segura.</p> : null}
-        {unavailable ? <p className="mt-2 text-xs text-danger">No hay un turno abierto de 11 a. m., 3 p. m. o 9 p. m. dentro de su horario de venta.</p> : null}
+        {unavailable ? <p className="mt-2 text-xs text-danger">No hay un turno abierto dentro del horario de venta configurado para hoy.</p> : null}
       </div>
 
       {isAdmin ? <div>

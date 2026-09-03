@@ -1,12 +1,13 @@
 import type { DrawShift } from "@/features/draws/types/draws.types";
 import { getDrawShiftTiming } from "@/features/draws/utils/draw-shift-timing";
 
-export const SALES_SHIFT_TIMES = ["11:00", "15:00", "21:00"] as const;
-
+/**
+ * A tenant owns its draw schedule.  Sales must not assume AlphaBy's legacy
+ * 11:00/15:00/21:00 times: custom configurations (for example 17:00) are
+ * valid as long as the API returned the shift for this tenant.
+ */
 export function isSupportedSalesShift(shift: DrawShift) {
-  return SALES_SHIFT_TIMES.includes(
-    shift.configuration.time.slice(0, 5) as (typeof SALES_SHIFT_TIMES)[number],
-  );
+  return shift.status === "ABIERTO" || shift.status === "BLOQUEO";
 }
 
 export function getSaleableSalesShifts(shifts: DrawShift[], now: number) {
@@ -26,6 +27,9 @@ export function selectCurrentSalesShift(shifts: DrawShift[], now: number) {
 
 export function formatSalesShiftLabel(shift: DrawShift) {
   const time = shift.configuration.time.slice(0, 5);
-  const label = time === "11:00" ? "11:00 a. m." : time === "15:00" ? "3:00 p. m." : "9:00 p. m.";
+  const [hour, minute] = time.split(":").map(Number);
+  const suffix = hour >= 12 ? "p. m." : "a. m.";
+  const displayHour = hour % 12 || 12;
+  const label = `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
   return `${shift.configuration.code} · ${label}`;
 }

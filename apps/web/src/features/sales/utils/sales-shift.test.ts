@@ -29,9 +29,9 @@ function shift(time: string, status: DrawShift["status"] = "ABIERTO"): DrawShift
 const shifts = [shift("21:00"), shift("15:00"), shift("11:00"), shift("18:00")];
 
 describe("sales shift selection", () => {
-  it("uses only the 11 AM, 3 PM and 9 PM operational schedule", () => {
+  it("uses the tenant schedule, including custom draw times", () => {
     const saleable = getSaleableSalesShifts(shifts, new Date("2026-07-01T15:00:00.000Z").getTime());
-    assert.deepEqual(saleable.map((item) => item.configuration.time.slice(0, 5)), ["11:00", "15:00", "21:00"]);
+    assert.deepEqual(saleable.map((item) => item.configuration.time.slice(0, 5)), ["11:00", "15:00", "18:00", "21:00"]);
   });
 
   it("automatically advances to the next shift after cutoff", () => {
