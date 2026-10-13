@@ -5,6 +5,15 @@
     "apps/*",
     "packages/*"
   ],
+  "overrides": {
+    "browserslist": "4.29.3",
+    "brace-expansion": "1.1.21",
+    "nanoid": "3.3.18",
+    "postcss": "8.5.30",
+    "socket.io-parser": "4.2.7",
+    "source-map-js": "1.2.2",
+    "js-yaml": "4.3.2"
+  },
   "scripts": {
     "dev:web": "cd apps/web && bun run dev",
     "dev:desktop": "cd apps/desktop && bun run dev",
