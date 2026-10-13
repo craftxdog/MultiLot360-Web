@@ -100,7 +100,7 @@ export function SaleStation() {
     </section>
 
     <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,.75fr)]">
-      <div className="sticky top-[4.5rem] z-20 xl:static"><FastSaleEntry disabled={unavailable || !accountReady || createSale.isPending} /></div>
+      <div className="sticky top-[4.5rem] z-20 min-w-0 xl:static"><FastSaleEntry disabled={unavailable || !accountReady || createSale.isPending} /></div>
       <aside className="sticky top-[4.5rem] hidden space-y-3 xl:block">
         <SaleCart />
         {!accountReady ? <div role="status" className="rounded-xl border border-danger/25 bg-danger/10 p-3 text-sm text-danger">Tu usuario no tiene un perfil de vendedor activo asociado.</div> : null}

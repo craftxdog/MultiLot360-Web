@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 type DrawsTabOption<TValue extends string> = {
   label: string;
+  mobileLabel?: string;
   value: TValue;
 };
 
@@ -26,7 +27,7 @@ export function DrawsSmoothTabs<TValue extends string>({
     <div
       role="tablist"
       aria-label="Vistas de sorteos y turnos"
-      className="inline-flex rounded-2xl border border-border bg-muted/60 p-1"
+      className="flex w-full rounded-2xl border border-border bg-muted/60 p-1 sm:w-auto"
     >
       {options.map((option) => {
         const active = option.value === value;
@@ -37,9 +38,10 @@ export function DrawsSmoothTabs<TValue extends string>({
             type="button"
             role="tab"
             aria-selected={active}
+            aria-label={option.label}
             onClick={() => onChange(option.value)}
             className={cn(
-              "relative h-9 rounded-xl px-4 text-sm font-medium transition",
+              "relative flex h-9 min-w-0 flex-1 items-center justify-center rounded-xl px-2 text-xs font-medium transition sm:px-4 sm:text-sm",
               active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -55,7 +57,8 @@ export function DrawsSmoothTabs<TValue extends string>({
               />
             ) : null}
 
-            <span className="relative z-10">{option.label}</span>
+            <span aria-hidden="true" className="relative z-10 truncate sm:hidden">{option.mobileLabel ?? option.label}</span>
+            <span aria-hidden="true" className="relative z-10 hidden truncate sm:inline">{option.label}</span>
           </button>
         );
       })}

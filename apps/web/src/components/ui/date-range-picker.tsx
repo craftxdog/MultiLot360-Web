@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,10 @@ export type DateRangeValue = {
 const formatter = new Intl.DateTimeFormat("es-NI", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" });
 const monthFormatter = new Intl.DateTimeFormat("es-NI", { month: "long", year: "numeric", timeZone: "UTC" });
 const weekdays = ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"];
+
+/** A viewport-bounded surface; its exact position is computed from the trigger. */
+export const dateRangePickerPanelClass =
+  "fixed z-50 overflow-y-auto rounded-2xl border border-border bg-background p-3 shadow-2xl";
 
 function toDate(value?: string) {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
@@ -94,17 +99,61 @@ function DateRangePickerInner({
   const [open, setOpen] = React.useState(false);
   const [range, setRange] = React.useState(() => normalizeRange(initialRange));
   const [month, setMonth] = React.useState(() => toDate(initialRange.from) ?? toDate(todayKey()) ?? new Date());
-  const panelRef = React.useRef<HTMLDivElement>(null);
+  const [panelStyle, setPanelStyle] = React.useState<React.CSSProperties>();
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const dialogRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (!open) return;
     const close = (event: MouseEvent) => {
-      if (panelRef.current?.contains(event.target as Node)) return;
+      if (rootRef.current?.contains(event.target as Node) || dialogRef.current?.contains(event.target as Node)) return;
       setOpen(false);
     };
     window.addEventListener("mousedown", close);
     return () => window.removeEventListener("mousedown", close);
   }, [open]);
+
+  React.useLayoutEffect(() => {
+    if (!open) return;
+
+    const positionPanel = () => {
+      const trigger = triggerRef.current;
+      const dialog = dialogRef.current;
+      if (!trigger || !dialog) return;
+
+      const margin = 16;
+      const gap = 8;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const width = Math.min(720, viewportWidth - margin * 2);
+      const left = Math.min(
+        Math.max(margin, trigger.getBoundingClientRect().left),
+        Math.max(margin, viewportWidth - width - margin),
+      );
+      const triggerRect = trigger.getBoundingClientRect();
+      const below = viewportHeight - triggerRect.bottom - gap - margin;
+      const above = triggerRect.top - gap - margin;
+      const placeAbove = dialog.scrollHeight > below && above > below;
+      const maxHeight = Math.max(0, placeAbove ? above : below);
+      const height = Math.min(dialog.scrollHeight, maxHeight);
+
+      setPanelStyle({
+        left,
+        top: placeAbove ? Math.max(margin, triggerRect.top - gap - height) : Math.max(margin, triggerRect.bottom + gap),
+        width,
+        maxHeight,
+      });
+    };
+
+    positionPanel();
+    window.addEventListener("resize", positionPanel);
+    window.addEventListener("scroll", positionPanel, true);
+    return () => {
+      window.removeEventListener("resize", positionPanel);
+      window.removeEventListener("scroll", positionPanel, true);
+    };
+  }, [month, open]);
 
   function commit(next: DateRangeValue) {
     const normalized = normalizeRange(next);
@@ -129,11 +178,12 @@ function DateRangePickerInner({
   const label = formatRange(range, placeholder);
 
   return (
-    <div ref={panelRef} className={cn("relative", className)}>
+    <div ref={rootRef} className={cn("relative min-w-0", className)}>
       {fromName ? <input type="hidden" name={fromName} value={range.from ?? ""} required={required} /> : null}
       {toName ? <input type="hidden" name={toName} value={range.to ?? ""} required={required} /> : null}
       <button
         type="button"
+        ref={triggerRef}
         aria-haspopup="dialog"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
@@ -146,8 +196,8 @@ function DateRangePickerInner({
         <CalendarDays className="h-4 w-4 shrink-0" />
         <span className="truncate">{label}</span>
       </button>
-      {open ? (
-        <div role="dialog" aria-label="Seleccionar rango de fechas" className="absolute left-0 z-50 mt-2 w-[min(92vw,720px)] rounded-2xl border border-border bg-background p-3 shadow-2xl">
+      {open && typeof document !== "undefined" ? createPortal(
+        <div ref={dialogRef} role="dialog" aria-label="Seleccionar rango de fechas" className={dateRangePickerPanelClass} style={panelStyle}>
           <div className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-2">
               {[7, 14, 30].map((days) => <Button key={days} type="button" variant="secondary" className="h-8 px-3 text-xs" onClick={() => applyPreset(days)}>{days} días</Button>)}
@@ -194,7 +244,8 @@ function DateRangePickerInner({
           <div className="mt-3 flex justify-end border-t border-border pt-3">
             <Button type="button" className="h-9" onClick={() => setOpen(false)}>Aplicar rango</Button>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </div>
   );

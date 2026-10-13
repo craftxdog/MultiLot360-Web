@@ -22,8 +22,8 @@ type DrawsViewProps = {
 
 const allTabs = [
   { label: "Activos", value: "active" as const, permission: "turnos.read" },
-  { label: "Historial", value: "shifts" as const, permission: "turnos.read" },
-  { label: "Configuraciones", value: "configurations" as const, permission: "sorteos.read" },
+  { label: "Historial", mobileLabel: "Hist.", value: "shifts" as const, permission: "turnos.read" },
+  { label: "Configuraciones", mobileLabel: "Ajustes", value: "configurations" as const, permission: "sorteos.read" },
 ];
 
 export function DrawsView({ defaultView }: DrawsViewProps) {
@@ -82,7 +82,7 @@ export function DrawsView({ defaultView }: DrawsViewProps) {
           <DrawsSmoothTabs
             value={activeTab}
             onChange={(view) => updateQuery({ view, date: undefined, status: undefined, active: undefined })}
-            options={tabs.map(({ label, value }) => ({ label, value }))}
+            options={tabs.map(({ label, mobileLabel, value }) => ({ label, mobileLabel, value }))}
           />
 
           <DrawsToolbar

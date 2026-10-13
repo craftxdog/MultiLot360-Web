@@ -72,7 +72,7 @@ export function ReportsWorkspace() {
 
   const filters = (
     <form
-      className="grid gap-2 md:grid-cols-3 xl:grid-cols-6"
+      className="grid gap-2 [&>*]:min-w-0 md:grid-cols-3 xl:grid-cols-6"
       onSubmit={(event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);

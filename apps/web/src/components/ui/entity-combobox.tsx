@@ -128,7 +128,7 @@ function EntityComboboxInput({
   };
 
   return (
-    <div ref={wrapperRef} className={cn("relative", className)}>
+    <div ref={wrapperRef} className={cn("relative min-w-0", className)}>
       <input type="hidden" name={name} value={currentValue} />
       <button
         ref={triggerRef}

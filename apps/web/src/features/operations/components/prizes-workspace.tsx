@@ -90,7 +90,7 @@ export function PrizesWorkspace() {
   };
 
   const filters = (
-    <form className="grid gap-2 md:grid-cols-3 xl:grid-cols-6" onSubmit={(event) => {
+    <form className="grid gap-2 [&>*]:min-w-0 md:grid-cols-3 xl:grid-cols-6" onSubmit={(event) => {
       event.preventDefault();
       const form = new FormData(event.currentTarget);
       update({
@@ -106,7 +106,7 @@ export function PrizesWorkspace() {
       <Input name="drawCode" placeholder="Sorteo" defaultValue={query.drawCode} />
       <SellerEntityCombobox name="sellerId" value={query.sellerId} placeholder="Vendedor" />
       <ResultEntityCombobox name="resultId" value={query.resultId} />
-      <div className="flex gap-2"><DateRangePicker className="min-w-0 flex-1" fromName="paidFrom" toName="paidUntil" from={query.paidFrom} to={query.paidUntil} placeholder="Rango de pago" /><Button type="submit" variant="secondary">Filtrar</Button></div>
+      <div className="flex flex-col gap-2 sm:flex-row"><DateRangePicker className="min-w-0 w-full sm:flex-1" fromName="paidFrom" toName="paidUntil" from={query.paidFrom} to={query.paidUntil} placeholder="Rango de pago" /><Button type="submit" variant="secondary" className="w-full sm:w-auto">Filtrar</Button></div>
     </form>
   );
 

@@ -264,7 +264,7 @@ export function BillingPortalWorkspace({ initialPortal }: { initialPortal: Billi
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -343,7 +343,7 @@ export function BillingPortalWorkspace({ initialPortal }: { initialPortal: Billi
           </section>
         </div>
 
-        <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-medium">Centro de pago</p>
