@@ -75,7 +75,7 @@ las rutas durante el build de producción.
 
 | Gate externo | Estado | Acción necesaria |
 | --- | --- | --- |
-| API development `dev-api.alphaby.cloud` | No resolvió DNS desde el entorno de certificación. | Recuperar DNS/red y ejecutar el smoke autorizado contra `health/ready` y flujos de QA. |
+| API development | Los destinos `dev-api.alphaby.cloud` (smoke de API) y `api-dev.alphaby.cloud` (variable `NEXT_PUBLIC_API_URL` del frontend) no resolvieron DNS desde el entorno de certificación; no hay evidencia de que apunten al mismo servicio. | Definir el host canónico, restaurar su DNS/TLS y usarlo de forma idéntica en `NEXT_PUBLIC_API_URL`, health-check y recorridos QA autorizados. |
 | Datos migrados en Supabase | Proyecto conectado marcado como inactivo; no se alteró su estado. | Reactivar o facilitar un entorno activo de sólo lectura y comparar migraciones, conteos y aislamiento. |
 | Dokploy development | La imagen `ghcr.io/craftxdog/multilot360-web:development-ae1cf8f42fc8` se publicó, pero el deploy se omitió porque el Environment `development` no tiene `DOKPLOY_APPLICATION_ID` ni token o webhook. | Configurar la aplicación development y `DOKPLOY_API_TOKEN` + ID, o `DOKPLOY_WEBHOOK_URL`; volver a ejecutar el deploy y comprobar el health-check. |
 | Alerta alta de desarrollo `braces` | Pendiente de proveedor/aceptación. | Actualizar cuando exista parche o registrar aceptación de riesgo con fecha y responsable. |
