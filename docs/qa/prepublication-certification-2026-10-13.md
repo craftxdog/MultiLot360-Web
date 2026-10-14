@@ -25,6 +25,7 @@ credenciales proporcionadas para automatizar pruebas.
 | Calendario y matriz | Interacción real a 320 px | El rango se aplica, el panel queda dentro del viewport; la matriz conserva únicamente su scroll horizontal intencional. |
 | Popovers de fechas | 20 aperturas reales en 6 módulos y 4 viewports | Sin desborde horizontal o vertical; cuando no cabe, el propio panel usa scroll interno. |
 | Dependencias | `bun install --frozen-lockfile --ignore-scripts` | Aprobado. |
+| CI/CD remoto | [Web CI/CD #55](https://github.com/craftxdog/MultiLot360-Web/actions/runs/38510532711) | Política, calidad, e2e responsive e imagen GHCR aprobados para `ae1cf8f`. |
 
 El build usa explícitamente `next build --webpack`. Después de actualizar a
 Next 16.3.8, Turbopack falló en este host al crear un proceso auxiliar durante
@@ -76,6 +77,7 @@ las rutas durante el build de producción.
 | --- | --- | --- |
 | API development `dev-api.alphaby.cloud` | No resolvió DNS desde el entorno de certificación. | Recuperar DNS/red y ejecutar el smoke autorizado contra `health/ready` y flujos de QA. |
 | Datos migrados en Supabase | Proyecto conectado marcado como inactivo; no se alteró su estado. | Reactivar o facilitar un entorno activo de sólo lectura y comparar migraciones, conteos y aislamiento. |
+| Dokploy development | La imagen `ghcr.io/craftxdog/multilot360-web:development-ae1cf8f42fc8` se publicó, pero el deploy se omitió porque el Environment `development` no tiene `DOKPLOY_APPLICATION_ID` ni token o webhook. | Configurar la aplicación development y `DOKPLOY_API_TOKEN` + ID, o `DOKPLOY_WEBHOOK_URL`; volver a ejecutar el deploy y comprobar el health-check. |
 | Alerta alta de desarrollo `braces` | Pendiente de proveedor/aceptación. | Actualizar cuando exista parche o registrar aceptación de riesgo con fecha y responsable. |
 | Impresión directa Bluetooth | No es capacidad web estándar. | Para PT-210 y similares, implementar/validar un puente nativo del cliente Desktop con el driver del sistema; el navegador sólo puede abrir el diálogo de impresión. |
 
