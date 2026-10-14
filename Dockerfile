@@ -6,7 +6,11 @@ COPY apps/desktop/package.json apps/desktop/package.json
 COPY packages/api-client/package.json packages/api-client/package.json
 RUN bun install --frozen-lockfile
 
-FROM dependencies AS builder
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=dependencies /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=dependencies /app/apps/desktop/node_modules ./apps/desktop/node_modules
 ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
 ARG NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
 ARG NEXT_PUBLIC_DESKTOP_RELEASE_URL=
@@ -15,7 +19,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_DESKTOP_RELEASE_URL=$NEXT_PUBLIC_DESKTOP_RELEASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY . .
-RUN bun run build:web
+RUN cd apps/web && node node_modules/next/dist/bin/next build --webpack
 
 FROM node:22-alpine AS runner
 WORKDIR /app

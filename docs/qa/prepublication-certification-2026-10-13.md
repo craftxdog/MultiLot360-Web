@@ -40,6 +40,10 @@ servidor `.next/standalone/apps/web/server.js`, que corresponde a
 sobre una salida standalone. Antes de iniciarlo, sincroniza `public/` y
 `.next/static` dentro del artefacto, igual que el `Dockerfile` de runtime.
 
+La imagen instala dependencias desde `bun.lock`, pero ejecuta la compilación de
+Next con Node 22. Esto evita una incompatibilidad de Bun al recopilar datos de
+las rutas durante el build de producción.
+
 ## Correcciones UI/UX verificadas
 
 - Las pestañas de turnos preservan sus nombres accesibles completos y usan
