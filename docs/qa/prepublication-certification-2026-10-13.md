@@ -33,6 +33,13 @@ es el fallback oficialmente soportado por Next 16 y generó el artefacto
 optimizado sin alterar el comportamiento de rutas. El script `build` y el CI
 usan ahora esa ruta reproducible.
 
+El workflow instala Chromium desde `apps/web`, de modo que la revisión de
+Playwright coincide con la que ejecuta las pruebas. El e2e también arranca el
+servidor `.next/standalone/apps/web/server.js`, que corresponde a
+`apps/web/server.js` dentro del contenedor, en vez de invocar `next start`
+sobre una salida standalone. Antes de iniciarlo, sincroniza `public/` y
+`.next/static` dentro del artefacto, igual que el `Dockerfile` de runtime.
+
 ## Correcciones UI/UX verificadas
 
 - Las pestañas de turnos preservan sus nombres accesibles completos y usan

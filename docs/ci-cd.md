@@ -20,6 +20,7 @@ Cada PR o push hacia `develop` y `master` ejecuta:
 7. pruebas del shell Desktop;
 8. formato Rust del shell Tauri;
 9. build de Next.js.
+10. pruebas E2E responsive contra la salida standalone de Next.js.
 
 Si cualquiera de esos pasos falla, no se publica imagen ni despliegue.
 
@@ -135,8 +136,13 @@ Guía Dokploy: [`docs/dokploy-deployment.md`](./dokploy-deployment.md).
 ```bash
 bun install --frozen-lockfile
 bun run check:frontend
+bun run test:e2e:web
 docker build -t multilot-360-web .
 ```
+
+El e2e sincroniza `public/` y `.next/static` en el directorio standalone antes
+de arrancarlo; es la misma composición de assets que utiliza la imagen Docker
+de runtime.
 
 ## Protección recomendada en GitHub
 

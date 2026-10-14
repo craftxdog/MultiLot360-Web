@@ -155,7 +155,7 @@ jobs:
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1' }}
 
       - name: Install Chromium for responsive tests
-        run: bunx playwright install --with-deps chromium
+        run: cd apps/web && bunx playwright install --with-deps chromium
 
       - name: Run responsive browser tests
         run: bun run test:e2e:web

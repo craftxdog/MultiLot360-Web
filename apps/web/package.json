@@ -9,7 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "bun test src",
-    "test:e2e": "playwright test"
+    "test:e2e": "node scripts/prepare-standalone-runtime.mjs && playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

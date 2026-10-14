@@ -12,7 +12,11 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "bun run start",
+    command: "node .next/standalone/apps/web/server.js",
+    env: {
+      HOSTNAME: "127.0.0.1",
+      PORT: "8080",
+    },
     url: "http://127.0.0.1:8080/login",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
